@@ -1,0 +1,15 @@
+78098b89c88a74ebe8c20117b8754620
+::res://::1789397529
+coccoon.gd::GDScript::1671478752848227362::1789397431::0::1::::<>Node<><>0<>0<><>::
+demo.gd::GDScript::1782893383724580347::1789397434::0::1::::<>Node<><>0<>0<><>::
+demo.tscn::PackedScene::-1::1789396359::0::1::::<><><>0<>0<><>::res://demo.gd
+icon.svg::CompressedTexture2D::8542507213717580044::1789396025::1789397037::1::::<><><>0<>0<>8f524ec1673cb2cb268e12ccc01bd103<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+micromoth.gd::GDScript::2818961268623691125::1789397077::0::1::::MicroMoth<>RefCounted<><>0<>0<><>::
+::res://images/::1789397037
+qubit.png::CompressedTexture2D::3224152166039869055::1789396013::1789397037::1::::<><><>0<>0<>ef4650ea3791f26937c74c95e8afec64<>res://.godot/imported/qubit.png-67c40309e7c366664a9073f4b56d87ee.ctex::
+terrain-grass.png::CompressedTexture2D::4027420169990069012::1789396013::1789397037::1::::<><><>0<>0<>bdfd5e4e204c709d492bed7fe722ad6a<>res://.godot/imported/terrain-grass.png-f4f97c920d61e8348998026ae96023ef.ctex::
+terrain-path.png::CompressedTexture2D::85031751051160858::1789396013::1789397037::1::::<><><>0<>0<>0c8f4f508da68761be40ce673bc6175a<>res://.godot/imported/terrain-path.png-3e3af4162aa84422460074d63c129f30.ctex::
+terrain-purple-flower.png::CompressedTexture2D::1918078834534131470::1789396013::1789397037::1::::<><><>0<>0<>1b2783ede02b06f5b5efdcd339bacdab<>res://.godot/imported/terrain-purple-flower.png-c79781e80d99a8c9f237a9022ee3396d.ctex::
+terrain-red-flower.png::CompressedTexture2D::2018863188945184578::1789396013::1789397037::1::::<><><>0<>0<>500548ed5a135945490acccfe88f5712<>res://.godot/imported/terrain-red-flower.png-1e8db44bd437f35f8582063401c61b70.ctex::
+terrain-tree.png::CompressedTexture2D::118393101513878420::1789396013::1789397037::1::::<><><>0<>0<>0f935d1ab6aba66723865222ce25ae46<>res://.godot/imported/terrain-tree.png-51a74bfcbce438852313cd9242364b3c.ctex::
+terrain-water.png::CompressedTexture2D::4454395452275127989::1789396013::1789397037::1::::<><><>0<>0<>5ab2be244c10da9195ad92be74578609<>res://.godot/imported/terrain-water.png-f2924033f03ccfad237748f989e9c46c.ctex::
