@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhgpwme2jepu"
-path="res://.godot/imported/terrain-path.png-3e3af4162aa84422460074d63c129f30.ctex"
+uid="uid://b2ivc4q12lqys"
+path="res://.godot/imported/benji_low.png-f91aace3f15054dd9f62b7120b8c1b41.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://images/terrain-path.png"
-dest_files=["res://.godot/imported/terrain-path.png-3e3af4162aa84422460074d63c129f30.ctex"]
+source_file="res://games/benji_the_blob/images/benji_low.png"
+dest_files=["res://.godot/imported/benji_low.png-f91aace3f15054dd9f62b7120b8c1b41.ctex"]
 
 [params]
 

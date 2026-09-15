@@ -37,6 +37,10 @@ func _input(event: InputEvent) -> void:
 						_input_state["key_presses"].append(code)
 				else:
 					_input_state["key_presses"].erase(code)
+		if event.keycode == KEY_ESCAPE and event.pressed:
+			var scene: Node = get_tree().current_scene
+			if scene and scene.scene_file_path != "res://menu.tscn":
+				get_tree().change_scene_to_file("res://menu.tscn")
 
 func update() -> Dictionary:
 	return _input_state
@@ -44,11 +48,15 @@ func update() -> Dictionary:
 func _to_screen(x: float, y: float, size: float) -> Vector2:
 	return Vector2(x * CELL, (GRID_H - y - size) * CELL)
 
-func _load_texture(path: String) -> Texture2D:
-	var res_path := "res://" + path
+func _load_texture(entry) -> Texture2D:
+	if entry is Color:
+		var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		img.set_pixel(0, 0, entry)
+		return ImageTexture.create_from_image(img)
+	var res_path: String = "res://" + entry
 	if ResourceLoader.exists(res_path):
 		return load(res_path) as Texture2D
-	var img := Image.load_from_file(path)
+	var img := Image.load_from_file(entry)
 	return ImageTexture.create_from_image(img)
 
 
@@ -62,7 +70,7 @@ class ImageList extends RefCounted:
 		_filenames = filenames
 		coccoon._images = filenames
 
-	func __getitem__(i: int) -> String:
+	func __getitem__(i: int):
 		return _filenames[i]
 
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxl6gfdaohv5"
-path="res://.godot/imported/terrain-tree.png-51a74bfcbce438852313cd9242364b3c.ctex"
+uid="uid://b70iqb8863uch"
+path="res://.godot/imported/player.png-f735a21b5ad386d6f6ee9ff5faaa58dc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://images/terrain-tree.png"
-dest_files=["res://.godot/imported/terrain-tree.png-51a74bfcbce438852313cd9242364b3c.ctex"]
+source_file="res://games/benji_the_blob/images/player.png"
+dest_files=["res://.godot/imported/player.png-f735a21b5ad386d6f6ee9ff5faaa58dc.ctex"]
 
 [params]
 

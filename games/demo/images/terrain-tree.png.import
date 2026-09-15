@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://307m8k10b1d3"
-path="res://.godot/imported/terrain-red-flower.png-1e8db44bd437f35f8582063401c61b70.ctex"
+uid="uid://bxl6gfdaohv5"
+path="res://.godot/imported/terrain-tree.png-e45e08bcebfaf32da6a241eff7a171d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://images/terrain-red-flower.png"
-dest_files=["res://.godot/imported/terrain-red-flower.png-1e8db44bd437f35f8582063401c61b70.ctex"]
+source_file="res://games/demo/images/terrain-tree.png"
+dest_files=["res://.godot/imported/terrain-tree.png-e45e08bcebfaf32da6a241eff7a171d6.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4p0iidrdegsj"
-path="res://.godot/imported/terrain-water.png-f2924033f03ccfad237748f989e9c46c.ctex"
+uid="uid://c7hwhx51gq43u"
+path="res://.godot/imported/terrain_lawn.png-2f9a1a947370ec318f42b10cddd1f340.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://images/terrain-water.png"
-dest_files=["res://.godot/imported/terrain-water.png-f2924033f03ccfad237748f989e9c46c.ctex"]
+source_file="res://games/benji_the_blob/images/terrain_lawn.png"
+dest_files=["res://.godot/imported/terrain_lawn.png-2f9a1a947370ec318f42b10cddd1f340.ctex"]
 
 [params]
 
