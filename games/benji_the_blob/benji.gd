@@ -24,10 +24,14 @@ const IMG_BENJI_STAR = 13
 const IMG_COR        = 14
 const IMG_BG         = 15
 const IMG_CLEAR      = 16  # transparent — used for empty entity layer cells
+const IMG_TITLE      = 17
 
 var _images
 var _tiles:  Dictionary = {}  # terrain layer z=0, full 32x18
 var _etiles: Dictionary = {}  # entity layer  z=1, 16x16 game area only
+var _player_spr               # smooth float-positioned sprite z=2
+var _benji_spr                # smooth float-positioned sprite z=2
+var _title_spr
 var _status_text
 
 var _seed:   Array      = []
@@ -70,6 +74,7 @@ func _ready() -> void:
 		img + "cor.png",             # 14
 		Color(0.05, 0.05, 0.10),     # 15 background
 		Color(0.0, 0.0, 0.0, 0.0),  # 16 transparent
+		img + "title.png",           # 17
 	])
 	# Terrain layer — full grid
 	for cx in range(coccoon.GRID_W):
@@ -81,6 +86,9 @@ func _ready() -> void:
 			var cx: int = OX + gx
 			var cy: int = OY + gy
 			_etiles[Vector2i(cx, cy)] = coccoon.Sprite.new(IMG_CLEAR, float(cx), float(cy), 1)
+	_player_spr = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 2)
+	_benji_spr  = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 2)
+	_title_spr = coccoon.Sprite.new(IMG_TITLE, float(OX), float(OY), 100, float(L))
 	_status_text = coccoon.Text.new(
 		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.1))
 	for i in range(6):
@@ -170,17 +178,23 @@ func _bimg() -> int:
 func _gxy(wx: int, wy: int) -> Vector2i:
 	return Vector2i(OX + (wx - _sx * L), OY + (L - 1 - (wy - _sy * L)))
 
+func _place(spr, wx: float, wy: float, img: int) -> void:
+	spr.image_id = img
+	spr.x = OX + (wx - float(_sx * L))
+	spr.y = OY + float(L - 1) - (wy - float(_sy * L))
+
 
 # ── Render ───────────────────────────────────────────────────────────────────
 
 func _render() -> void:
 	if _title:
-		for key in _tiles:
-			_tiles[key].image_id = IMG_MEADOW
-		for key in _etiles:
-			_etiles[key].image_id = IMG_CLEAR
-		_status_text.text = "BENJI THE BLOB  |  lead your pet to food, avoid ticks  |  press any key"
+		_title_spr.image_id  = IMG_TITLE
+		_player_spr.image_id = IMG_CLEAR
+		_benji_spr.image_id  = IMG_CLEAR
+		_status_text.text = ""
 		return
+
+	_title_spr.image_id = IMG_CLEAR
 
 	# Terrain layer
 	for cx in range(coccoon.GRID_W):
@@ -204,9 +218,11 @@ func _render() -> void:
 		_etiles[_gxy(_cor_wx, _cor_wy)].image_id = IMG_COR
 
 	if floori(_jx / float(L)) == _sx and floori(_jy / float(L)) == _sy:
-		_etiles[_gxy(floori(_jx), floori(_jy))].image_id = _bimg()
+		_place(_benji_spr, _jx, _jy, _bimg())
+	else:
+		_benji_spr.image_id = IMG_CLEAR
 
-	_etiles[_gxy(floori(_px), floori(_py))].image_id = IMG_PLAYER
+	_place(_player_spr, _px, _py, IMG_PLAYER)
 
 	_status_text.text = "Benji: " + str(int(_j_size * 100.0)) + "% full"
 
