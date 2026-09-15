@@ -16,9 +16,10 @@ const _KEY_MAP = {
 	KEY_DOWN:   2,
 	KEY_LEFT:   3,
 	KEY_SPACE:  4,
-	KEY_A:      5,
-	KEY_S:      6,
-	KEY_D:      7,
+	KEY_W:      5,
+	KEY_A:      6,
+	KEY_S:      7,
+	KEY_D:      8,
 	KEY_ESCAPE: -1,
 }
 
