@@ -12,8 +12,10 @@ const K_JUMP  = 4  # space
 const K_JUMP2 = 7  # S
 const K_DASH  = 6  # A
 
-const IMG_CLEAR = 128
-const IMG_BG    = 129
+const IMG_CLEAR      = 128
+const IMG_BG         = 129
+const IMG_HAIR_DASH  = 130  # red  — dash available
+const IMG_HAIR_NODASH = 131 # blue — dash spent
 
 const MAX_DJUMP = 1
 
@@ -93,6 +95,7 @@ const CELESTE_GFF: Array = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,2,0,0,0,0,0,0,0,0,
 var _images
 var _tiles:  Dictionary = {}
 var _entity_sprs: Array = []
+var _hair_sprs:   Array = []
 var _player_spr
 var _status_text
 
@@ -115,8 +118,10 @@ func _ready() -> void:
 	var paths: Array = []
 	for i in range(128):
 		paths.append(img + "spr%03d.png" % i)
-	paths.append(Color(0.0, 0.0, 0.0, 0.0))
-	paths.append(Color(0.05, 0.05, 0.1))
+	paths.append(Color(0.0, 0.0, 0.0, 0.0))   # 128 IMG_CLEAR
+	paths.append(Color(0.05, 0.05, 0.1))      # 129 IMG_BG
+	paths.append(Color(1.0, 0.0, 0.302))      # 130 IMG_HAIR_DASH  (Pico-8 red)
+	paths.append(Color(0.161, 0.678, 1.0))    # 131 IMG_HAIR_NODASH (Pico-8 blue)
 	_images = coccoon.ImageList.new(paths)
 
 	for cx in range(coccoon.GRID_W):
@@ -127,7 +132,9 @@ func _ready() -> void:
 		var spr = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 1)
 		_entity_sprs.append(spr)
 
-	_player_spr = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 2)
+	for _i in range(5):
+		_hair_sprs.append(coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 2, 0.125))
+	_player_spr = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 3)
 
 	_status_text = coccoon.Text.new(
 		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.1))
@@ -136,17 +143,21 @@ func _ready() -> void:
 
 
 func _show_title() -> void:
-	var bg := Color(0.05, 0.05, 0.1)
+	var bg  := Color(0.05, 0.05, 0.1)
+	var dim := Color(0.7, 0.7, 1.0)
+	var key := Color(1.0, 0.9, 0.2)
 	_title_elems.append(coccoon.Text.new(
 		"", coccoon.GRID_W, coccoon.GRID_H, 0, 0, 16, Color.WHITE, bg))
 	_title_elems.append(coccoon.Text.new(
 		"CELESTE", coccoon.GRID_W, 5, 0, 11, 72, Color.WHITE, bg))
 	_title_elems.append(coccoon.Text.new(
-		"by Matt Thorson & Noel Berry", coccoon.GRID_W, 2, 0, 8, 20,
-		Color(0.7, 0.7, 1.0), bg))
+		"by Matt Thorson & Noel Berry", coccoon.GRID_W, 2, 0, 9, 20, dim, bg))
+	_title_elems.append(coccoon.Text.new("S", 2, 2, 11, 6, 24, key, bg))
+	_title_elems.append(coccoon.Text.new("– jump", 8, 2, 13, 6, 24, dim, bg))
+	_title_elems.append(coccoon.Text.new("A", 2, 2, 11, 4, 24, key, bg))
+	_title_elems.append(coccoon.Text.new("– dash", 8, 2, 13, 4, 24, dim, bg))
 	_title_elems.append(coccoon.Text.new(
-		"press space to start", coccoon.GRID_W, 2, 0, 3, 20,
-		Color(0.7, 0.7, 1.0), bg))
+		"press S or A to start", coccoon.GRID_W, 2, 0, 1, 20, dim, bg))
 
 
 func _hide_title() -> void:
@@ -245,12 +256,13 @@ func _sign(v: float) -> float:
 # ── Player collision helpers ──────────────────────────────────────────────────
 
 func _player_is_solid(p: Dictionary, ox: float, oy: float) -> bool:
-	return _solid_at(
-		p["x"] + p["hitbox"]["x"] + ox,
-		p["y"] + p["hitbox"]["y"] + oy,
-		p["hitbox"]["w"],
-		p["hitbox"]["h"]
-	)
+	var hx: float = p["x"] + p["hitbox"]["x"] + ox
+	var hy: float = p["y"] + p["hitbox"]["y"] + oy
+	var hw: float = p["hitbox"]["w"]
+	var hh: float = p["hitbox"]["h"]
+	if hx < 0.0 or hx + hw > 128.0:
+		return true
+	return _solid_at(hx, hy, hw, hh)
 
 func _player_is_ice(p: Dictionary, ox: float, oy: float) -> bool:
 	return _ice_at(
@@ -279,6 +291,9 @@ func _spawn_player(px8_x: float, px8_y: float) -> void:
 		"p_jump": false, "p_dash": false,
 		"was_on_ground": false,
 		"spr_off": 0.0, "spr": 1,
+		"hair": [[px8_x + 4.0, px8_y + 3.0], [px8_x + 4.0, px8_y + 3.0],
+				 [px8_x + 4.0, px8_y + 3.0], [px8_x + 4.0, px8_y + 3.0],
+				 [px8_x + 4.0, px8_y + 3.0]],
 	}
 	_objects.append(p)
 
@@ -342,6 +357,14 @@ func _next_room() -> void:
 	else:
 		_load_room(_room_x + 1, _room_y)
 
+func _goto_room(rx: int, ry: int, px: float, py: float) -> void:
+	_load_room(rx, ry)
+	for obj in _objects:
+		if obj.get("_type") == "player":
+			obj["x"] = px
+			obj["y"] = py
+			break
+
 
 # ── Player death ──────────────────────────────────────────────────────────────
 
@@ -401,7 +424,7 @@ func _update_player(p: Dictionary, keys: Array) -> void:
 		_kill_player()
 		return
 
-	if p["y"] > 128.0:
+	if p["y"] + p["hitbox"]["y"] + p["hitbox"]["h"] >= 128.0:
 		_kill_player()
 		return
 
@@ -533,9 +556,23 @@ func _update_player(p: Dictionary, keys: Array) -> void:
 		p["spr"] = 1 + int(p["spr_off"]) % 4
 
 	_player_move(p, p["spd"]["x"], p["spd"]["y"])
+	_update_hair(p)
 
 	if p["y"] < -4.0 and _room_y * 16 + _room_x < 30:
 		_next_room()
+
+
+func _update_hair(p: Dictionary) -> void:
+	var facing: float = -1.0 if p["flip_x"] else 1.0
+	var hx: float = p["x"] + 4.0 - facing * 2.0
+	var hy: float = p["y"] + 3.0
+	var hair: Array = p["hair"]
+	# hair[0] is closest to head, hair[4] is the trailing tip
+	for i in range(5):
+		var tx: float = hx if i == 0 else hair[i - 1][0]
+		var ty: float = hy if i == 0 else hair[i - 1][1] - 2.0
+		hair[i][0] += (tx - hair[i][0]) / 1.5
+		hair[i][1] += (ty - hair[i][1]) / 1.5
 
 
 # ── Entity updates ────────────────────────────────────────────────────────────
@@ -613,7 +650,7 @@ func _update_platform(obj: Dictionary) -> void:
 			var pw: float = p["hitbox"]["w"]
 			var ph: float = p["hitbox"]["h"]
 			if px + pw > obj["x"] and px < obj["x"] + 16.0 and py + ph >= obj["y"] and py < obj["y"] + 4.0:
-				p["x"] += float(obj["_dir"]) * 0.65
+				p["x"] = clampf(p["x"] + float(obj["_dir"]) * 0.65, -1.0, 121.0)
 
 
 # ── Sprite placement ──────────────────────────────────────────────────────────
@@ -637,10 +674,12 @@ func _render() -> void:
 			var tile: int = _tile_at(tx, ty)
 			var cx: int = OX + tx
 			var cy: int = OY + L - 1 - ty
-			var img_id: int = IMG_CLEAR if (tile == 0 or tile >= 128) else tile
+			var img_id: int = IMG_CLEAR if (tile == 0 or tile >= 128 or tile in [1, 11, 12, 18, 23, 26]) else tile
 			_tiles[Vector2i(cx, cy)].image_id = img_id
 
 	for spr in _entity_sprs:
+		spr.image_id = IMG_CLEAR
+	for spr in _hair_sprs:
 		spr.image_id = IMG_CLEAR
 
 	var spr_idx: int = 0
@@ -671,6 +710,15 @@ func _render() -> void:
 	var player_drawn: bool = false
 	for obj in _objects:
 		if obj.get("_type") == "player":
+			var hair_img: int = IMG_HAIR_DASH if obj["djump"] > 0 else IMG_HAIR_NODASH
+			for i in range(5):
+				var hi: int = 4 - i  # draw tip (hi=4, big) first, head (hi=0, small) last
+				var sz: float = float(hi + 1) / 8.0  # hi=0→0.125 (head), hi=4→0.625 (tip)
+				var seg: Array = obj["hair"][hi]
+				_hair_sprs[i].size = sz
+				_hair_sprs[i].image_id = hair_img
+				_hair_sprs[i].x = OX + seg[0] / 8.0 - sz / 2.0
+				_hair_sprs[i].y = OY + float(L - 1) - seg[1] / 8.0 - sz / 2.0
 			_place_spr(_player_spr, obj["x"], obj["y"], obj["spr"], obj["flip_x"])
 			player_drawn = true
 			break
@@ -685,11 +733,24 @@ func _render() -> void:
 func _process(_delta: float) -> void:
 	var inp: Dictionary = coccoon.update()
 	var keys: Array = inp["key_presses"]
+	var just_pressed: Array = []
+	for k in keys:
+		if k not in _prev_keys:
+			just_pressed.append(k)
 	_prev_keys = keys.duplicate()
 
 	if _title:
-		if K_JUMP in keys or K_JUMP2 in keys or K_DASH in keys:
+		if K_DASH in just_pressed or K_JUMP2 in just_pressed:
 			_hide_title()
+		return
+
+	if K_JUMP in just_pressed:
+		var nx: int = _room_x + 1
+		var ny: int = _room_y
+		if nx >= 8:
+			nx = 0
+			ny = (ny + 1) % 4
+		_load_room(nx, ny)
 		return
 
 	if _will_restart:
