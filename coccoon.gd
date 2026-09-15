@@ -2,7 +2,7 @@ extends Node
 
 # coccoon — quantum game engine, Godot 4 backend
 
-const FPS    := 10
+const FPS    := 30
 const CELL   := 40
 const GRID_W := 32
 const GRID_H := 18

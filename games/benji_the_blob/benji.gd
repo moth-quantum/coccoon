@@ -247,7 +247,7 @@ func _process(_delta: float) -> void:
 
 	var px0: float = _px
 	var py0: float = _py
-	var spd: float = 0.6
+	var spd: float = 0.2
 	if 0 in keys:   _py -= spd
 	elif 2 in keys: _py += spd
 	if 3 in keys:   _px -= spd
@@ -264,25 +264,24 @@ func _process(_delta: float) -> void:
 		_sy = nsy
 		_gen_screen()
 
-	for _iter in range(3):
-		var dx: float = _px - _jx
-		var dy: float = _py - _jy
-		var md: float = abs(dx) + abs(dy)
-		if md > 2.0:
-			var pmx: float = _j_size * abs(dx) / md
-			var pmy: float = _j_size * abs(dy) / md
-			var r: float = randf()
-			if r < pmx and dx != 0.0:
-				_jx += 0.25 * sign(dx)
-			elif r < pmx + pmy and dy != 0.0:
-				_jy += 0.25 * sign(dy)
-			var jwx: int = floori(_jx)
-			var jwy: int = floori(_jy)
-			for i in range(_fruit.size()):
-				if _fruit[i]["active"] and _fruit[i]["wx"] == jwx and _fruit[i]["wy"] == jwy:
-					if _j_size < 0.95:
-						_fruit[i]["active"] = false
-						_j_size += 0.05
+	var dx: float = _px - _jx
+	var dy: float = _py - _jy
+	var md: float = abs(dx) + abs(dy)
+	if md > 2.0:
+		var pmx: float = _j_size * abs(dx) / md
+		var pmy: float = _j_size * abs(dy) / md
+		var r: float = randf()
+		if r < pmx and dx != 0.0:
+			_jx += 0.25 * sign(dx)
+		elif r < pmx + pmy and dy != 0.0:
+			_jy += 0.25 * sign(dy)
+		var jwx: int = floori(_jx)
+		var jwy: int = floori(_jy)
+		for i in range(_fruit.size()):
+			if _fruit[i]["active"] and _fruit[i]["wx"] == jwx and _fruit[i]["wy"] == jwy:
+				if _j_size < 0.95:
+					_fruit[i]["active"] = false
+					_j_size += 0.05
 
 	if _cor_active:
 		_cor_wx = _sx * L + randi() % L
@@ -291,5 +290,5 @@ func _process(_delta: float) -> void:
 			if _j_size > 0.1:
 				_j_size -= 0.1
 
-	_j_size = max(_j_size - 1.0 / 600.0, 0.0)
+	_j_size = max(_j_size - 1.0 / 1800.0, 0.0)
 	_render()
