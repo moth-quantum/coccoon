@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://games/q_qube/q_qube.gd" id="1_qqube"]
+
+[node name="QQube" type="Node"]
+script = ExtResource("1_qqube")

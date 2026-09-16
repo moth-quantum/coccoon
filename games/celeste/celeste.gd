@@ -12,10 +12,11 @@ const K_JUMP  = 4  # space
 const K_JUMP2 = 7  # S
 const K_DASH  = 6  # A
 
-const IMG_CLEAR      = 128
-const IMG_BG         = 129
-const IMG_HAIR_DASH  = 130  # red  — dash available
-const IMG_HAIR_NODASH = 131 # blue — dash spent
+const IMG_CLEAR       = 128
+const IMG_BG          = 129
+const IMG_HAIR_DASH   = 130  # red  — dash available
+const IMG_HAIR_NODASH = 131  # blue — dash spent
+const IMG_TITLE       = 132
 
 const MAX_DJUMP = 1
 
@@ -97,6 +98,8 @@ var _tiles:  Dictionary = {}
 var _entity_sprs: Array = []
 var _hair_sprs:   Array = []
 var _player_spr
+var _title_spr
+var _title_text
 var _status_text
 
 var _room_x: int = 0
@@ -110,7 +113,6 @@ var _prev_keys: Array = []
 var _will_restart: bool = false
 var _delay_restart: int = 0
 var _title: bool = true
-var _title_elems: Array = []
 
 
 func _ready() -> void:
@@ -119,9 +121,10 @@ func _ready() -> void:
 	for i in range(128):
 		paths.append(img + "spr%03d.png" % i)
 	paths.append(Color(0.0, 0.0, 0.0, 0.0))   # 128 IMG_CLEAR
-	paths.append(Color(0.05, 0.05, 0.1))      # 129 IMG_BG
+	paths.append(Color(0.05, 0.05, 0.15))      # 129 IMG_BG
 	paths.append(Color(1.0, 0.0, 0.302))      # 130 IMG_HAIR_DASH  (Pico-8 red)
 	paths.append(Color(0.161, 0.678, 1.0))    # 131 IMG_HAIR_NODASH (Pico-8 blue)
+	paths.append(img + "title.png")           # 132 IMG_TITLE
 	_images = coccoon.ImageList.new(paths)
 
 	for cx in range(coccoon.GRID_W):
@@ -137,34 +140,26 @@ func _ready() -> void:
 	_player_spr = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 3)
 
 	_status_text = coccoon.Text.new(
-		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.1))
+		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.15))
+
+	_title_spr  = coccoon.Sprite.new(IMG_CLEAR, float(OX), float(OY), 100, float(L))
+	_title_text = coccoon.Text.new(
+		"", coccoon.GRID_W, 3, 0, OY, 20, Color(0,0,0,0), Color(0,0,0,0))
 
 	_show_title()
 
 
 func _show_title() -> void:
-	var bg  := Color(0.05, 0.05, 0.1)
-	var dim := Color(0.7, 0.7, 1.0)
-	var key := Color(1.0, 0.9, 0.2)
-	_title_elems.append(coccoon.Text.new(
-		"", coccoon.GRID_W, coccoon.GRID_H, 0, 0, 16, Color.WHITE, bg))
-	_title_elems.append(coccoon.Text.new(
-		"CELESTE", coccoon.GRID_W, 5, 0, 11, 72, Color.WHITE, bg))
-	_title_elems.append(coccoon.Text.new(
-		"by Matt Thorson & Noel Berry", coccoon.GRID_W, 2, 0, 9, 20, dim, bg))
-	_title_elems.append(coccoon.Text.new("S", 2, 2, 11, 6, 24, key, bg))
-	_title_elems.append(coccoon.Text.new("– jump", 8, 2, 13, 6, 24, dim, bg))
-	_title_elems.append(coccoon.Text.new("A", 2, 2, 11, 4, 24, key, bg))
-	_title_elems.append(coccoon.Text.new("– dash", 8, 2, 13, 4, 24, dim, bg))
-	_title_elems.append(coccoon.Text.new(
-		"press S or A to start", coccoon.GRID_W, 2, 0, 1, 20, dim, bg))
+	_title_spr.image_id = IMG_TITLE
+	_title_text.text = "S = jump     A = dash\npress S or A to start"
+	_title_text.set_font_color(Color.WHITE)
+	_title_text.set_background_color(Color(0.0, 0.0, 0.0, 0.55))
 
 
 func _hide_title() -> void:
-	var t := Color(0.0, 0.0, 0.0, 0.0)
-	for elem in _title_elems:
-		elem.set_font_color(t)
-		elem.set_background_color(t)
+	_title_spr.image_id = IMG_CLEAR
+	_title_text.set_font_color(Color(0.0, 0.0, 0.0, 0.0))
+	_title_text.set_background_color(Color(0.0, 0.0, 0.0, 0.0))
 	_title = false
 	_load_room(0, 0)
 

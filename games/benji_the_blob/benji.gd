@@ -72,7 +72,7 @@ func _ready() -> void:
 		img + "benji_low.png",       # 12
 		img + "benji_starving.png",  # 13
 		img + "cor.png",             # 14
-		Color(0.05, 0.05, 0.10),     # 15 background
+		Color(0.05, 0.05, 0.15),     # 15 background
 		Color(0.0, 0.0, 0.0, 0.0),  # 16 transparent
 		img + "title.png",           # 17
 	])
@@ -90,7 +90,7 @@ func _ready() -> void:
 	_benji_spr  = coccoon.Sprite.new(IMG_CLEAR, 0.0, 0.0, 2)
 	_title_spr = coccoon.Sprite.new(IMG_TITLE, float(OX), float(OY), 100, float(L))
 	_status_text = coccoon.Text.new(
-		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.1))
+		"", coccoon.GRID_W, 1, 0, 0, 16, Color.WHITE, Color(0.05, 0.05, 0.15))
 	for i in range(6):
 		_seed.append(0.5 + randf())
 	_render()
