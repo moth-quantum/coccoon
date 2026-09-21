@@ -50,6 +50,7 @@ var _waiting_for_next: bool = false # player finished; waiting for prefetch
 # We use a single node here because all requests (submit, poll, download) run
 # sequentially inside coroutines and never overlap.
 var _http: HTTPRequest
+var _title_text
 var _loading_text
 
 const _API_BASE := "https://api.mothquantum.com"
@@ -71,15 +72,20 @@ func _ready() -> void:
 			_tiles[Vector2i(dx, sy)] = coccoon.Sprite.new(
 				IMG_OUTSIDE, float(dx), float(VIEW_H - sy), 0)
 	_status_text = coccoon.Text.new(
-		"Generating quantum maze", VIEW_W, 1, 0, 0,
-		16, Color.WHITE, Color(0.05, 0.05, 0.15))
+		"Generating quantum maze", VIEW_W, 2, 0, 0,
+		40, Color.WHITE, Color(0.05, 0.05, 0.15))
+	_setup_title_tiles()
+	_title_text = coccoon.Text.new(
+		"QUANTUM CAVERNS",
+		26.0, 3.5, 3.0, 12.5,
+		56, Color.WHITE, Color(0.03, 0.05, 0.08, 0.88))
 	_loading_text = coccoon.Text.new(
-		"Reach the exit (blue) from the start (red) within the step limit.\n\n" +
+		"Navigate from start (red) to exit (blue)\nwithin the step limit.\n\n" +
 		"Your previous route stays visible as a trail.\n\n" +
 		"Arrow keys to move\n" +
 		"Space for a new maze\n" +
-		"Esc to return to menu",
-		26.0, 7.0, 3.0, 5.0, 14, Color(0.75, 0.8, 1.0), Color(0.06, 0.06, 0.18))
+		"Esc to menu",
+		26.0, 6.5, 3.0, 5.0, 18, Color(0.75, 0.8, 1.0), Color(0.03, 0.05, 0.08, 0.88))
 	_start_generation()
 
 
@@ -101,8 +107,9 @@ func _start_generation() -> void:
 	var height := await _gen_height(coccoon.get_api_key())
 	_build_maze(height)
 	_generating = false
-	_loading_text.set_font_color(Color(0, 0, 0, 0))
-	_loading_text.set_background_color(Color(0, 0, 0, 0))
+	for t in [_title_text, _loading_text]:
+		t.set_font_color(Color(0, 0, 0, 0))
+		t.set_background_color(Color(0, 0, 0, 0))
 	_reset_loop()
 	_prefetch_next()  # fire-and-forget
 
@@ -123,6 +130,42 @@ func _apply_next_maze() -> void:
 	_waiting_for_next = false
 	_reset_loop()
 	_prefetch_next()
+
+
+# ── Title screen tiles ──────────────────────────────────────────────────────
+#
+# Before the first maze is ready we fill the grid with a fixed decorative
+# pattern using the game's own tile colours, so the loading screen looks like
+# a piece of the world rather than a blank slate. A seeded RNG followed by one
+# cellular-automaton pass clusters the walls into organic blobs matching the
+# game's aesthetic. Two accent tiles (red start, blue exit) echo the gameplay.
+
+func _setup_title_tiles() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	var raw: Array = []
+	for dx in range(VIEW_W):
+		var col: Array = []
+		for sy in range(VIEW_H):
+			col.append(rng.randf() < 0.46)
+		raw.append(col)
+	for dx in range(VIEW_W):
+		for sy in range(VIEW_H):
+			var pos := Vector2i(dx, sy)
+			if dx == 0 or dx == VIEW_W - 1 or sy == 0 or sy == VIEW_H - 1:
+				_tiles[pos].image_id = IMG_WALL
+				continue
+			var walls := 0
+			for d in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+				var n := Vector2i(dx + d.x, sy + d.y)
+				if n.x < 0 or n.x >= VIEW_W or n.y < 0 or n.y >= VIEW_H:
+					walls += 1
+				elif raw[n.x][n.y]:
+					walls += 1
+			_tiles[pos].image_id = IMG_WALL if walls >= 2 else IMG_PATH
+	# Red start (bottom-left area) and blue exit (top-right) as decorative accents
+	_tiles[Vector2i(3, 3)].image_id = IMG_PLAYER
+	_tiles[Vector2i(28, 13)].image_id = IMG_END
 
 
 # ── Height generation ────────────────────────────────────────────────────────
