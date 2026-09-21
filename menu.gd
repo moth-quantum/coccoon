@@ -73,7 +73,6 @@ func _input(event: InputEvent) -> void:
 				_launch()
 
 const _SCENE_NAMES := {
-	"benji_the_blob": "benji",
 	"deep_space_obrien": "dso",
 }
 
