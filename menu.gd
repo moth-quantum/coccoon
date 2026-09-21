@@ -73,7 +73,6 @@ func _input(event: InputEvent) -> void:
 				_launch()
 
 const _SCENE_NAMES := {
-	"deep_space_obrien": "dso",
 }
 
 func _find_scene(game: String) -> String:

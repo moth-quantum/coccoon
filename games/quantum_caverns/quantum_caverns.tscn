@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://games/deep_space_obrien/dso.gd" id="1_dso"]
+[ext_resource type="Script" path="res://games/quantum_caverns/quantum_caverns.gd" id="1_dso"]
 
 [node name="DeepSpaceOBrien" type="Node"]
 script = ExtResource("1_dso")

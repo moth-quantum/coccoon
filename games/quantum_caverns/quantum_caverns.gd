@@ -1,6 +1,6 @@
 extends Node
 
-# Deep Space O'Brien
+# Quantum Caverns
 # Quantum maze game: navigate from start (red) to beam-out point (blue)
 # within the step limit. Your previous loop's path stays visible as a dim trail.
 
