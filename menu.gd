@@ -35,6 +35,9 @@ func _build_ui() -> void:
 	coccoon.Text.new("COCCOON", coccoon.GRID_W, 3, 0, coccoon.GRID_H - 3,
 		48, Color.WHITE, Color(0.08, 0.08, 0.22))
 
+	coccoon.Text.new("Up/Down arrows to navigate   Space to launch   Esc to return",
+		coccoon.GRID_W, 1, 0, 0, 14, Color(0.5, 0.5, 0.7), Color(0.05, 0.05, 0.15))
+
 	var label_w: float = 22.0
 	var label_x: float = (coccoon.GRID_W - label_w) / 2.0
 	var center_y: float = 7.0
@@ -69,18 +72,24 @@ func _input(event: InputEvent) -> void:
 			KEY_SPACE, KEY_ENTER:
 				_launch()
 
+const _SCENE_NAMES := {
+	"benji_the_blob": "benji",
+	"deep_space_obrien": "dso",
+}
+
 func _find_scene(game: String) -> String:
-	var dir := DirAccess.open("res://games/" + game)
-	if dir:
-		dir.list_dir_begin()
-		var entry := dir.get_next()
-		while entry != "":
-			if entry.ends_with(".tscn"):
-				return "res://games/" + game + "/" + entry
-			entry = dir.get_next()
+	var base := "res://games/" + game + "/"
+	var stem: String = _SCENE_NAMES.get(game, game)
+	for ext: String in [".tscn", ".scn"]:
+		var path: String = base + stem + ext
+		if ResourceLoader.exists(path):
+			return path
 	return ""
 
 func _launch() -> void:
 	var path: String = _find_scene(_games[_selected])
 	if path != "":
+		_labels[_selected].text = "  Loading..."
+		_labels[_selected].set_background_color(Color(0.15, 0.15, 0.15))
+		await get_tree().process_frame
 		get_tree().change_scene_to_file(path)

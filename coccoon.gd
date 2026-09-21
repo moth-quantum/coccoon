@@ -27,6 +27,8 @@ func _ready() -> void:
 	Engine.max_fps = FPS
 	_print_buffer = Text.new("", 32, 18, 0, 0, 16)
 	hide_print()
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("var c=document.getElementById('canvas');c.setAttribute('tabindex','0');c.focus();document.body.addEventListener('click',function(){c.focus();});")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and not event.echo:
