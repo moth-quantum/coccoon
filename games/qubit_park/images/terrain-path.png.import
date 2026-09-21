@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://307m8k10b1d3"
-path="res://.godot/imported/terrain-red-flower.png-7b5f37157bbf4b808c2ca43c223f3db5.ctex"
+uid="uid://bhgpwme2jepu"
+path="res://.godot/imported/terrain-path.png-076fd409950eb2da333f75e5e20c2f53.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://games/demo/images/terrain-red-flower.png"
-dest_files=["res://.godot/imported/terrain-red-flower.png-7b5f37157bbf4b808c2ca43c223f3db5.ctex"]
+source_file="res://games/qubit_park/images/terrain-path.png"
+dest_files=["res://.godot/imported/terrain-path.png-076fd409950eb2da333f75e5e20c2f53.ctex"]
 
 [params]
 

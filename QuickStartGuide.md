@@ -282,6 +282,139 @@ value in [0, 1], which is what the demo's terrain generator does.
 
 ---
 
+### The Moth API
+
+If a Moth API key is set in the coccoon menu, your game can call Moth engines — cloud quantum
+services that run on real hardware or high-performance simulators. Games that do not use the API
+still work: the key is optional, and the pattern below degrades gracefully to a local fallback.
+
+**Retrieving the key:**
+
+The key is stored at the engine level. Retrieve it anywhere with:
+
+```gdscript
+var key := coccoon.get_api_key()  # empty string if not set
+```
+
+Players enter their key through the coccoon menu — you never handle credentials in game code.
+
+**Making a request:**
+
+The Moth API follows an async job model. You POST a job, receive a `job_id` immediately (HTTP 202),
+then poll a second endpoint until the job is complete. Use Godot's `HTTPRequest` node and `await`
+to handle this without blocking the game:
+
+```gdscript
+var _http: HTTPRequest
+
+func _ready() -> void:
+    _http = HTTPRequest.new()
+    add_child(_http)
+    # ... rest of setup ...
+    _generate()
+
+func _generate() -> void:
+    var key := coccoon.get_api_key()
+    var result: Variant = null
+    if key.length() > 0:
+        result = await _call_api(key)
+    if result == null:
+        result = _local_fallback()
+    _apply(result)
+```
+
+**Submitting a job (blur-core-v1 example):**
+
+`blur-core-v1` takes a 2D array of floats and a `strength` value (0–1), and returns the same array
+after quantum blurring. The request body goes inside `params`:
+
+```gdscript
+const _API_BASE := "https://api.mothquantum.com"
+
+func _call_api(key: String) -> Variant:
+    var body := JSON.stringify({
+        "params": {
+            "values": my_2d_array,   # nested Array of floats, row-major
+            "strength": 0.25,
+        }
+    })
+    var err := _http.request(
+        _API_BASE + "/api/v1/engines/blur-core-v1/process",
+        PackedStringArray([
+            "Authorization: Bearer " + key,
+            "Content-Type: application/json",
+        ]),
+        HTTPClient.METHOD_POST, body)
+    if err != OK:
+        return null
+
+    var resp: Array = await _http.request_completed
+    # resp = [result_code, http_status, headers, body_as_PackedByteArray]
+    if resp[1] != 202:
+        return null
+
+    var parsed: Variant = JSON.parse_string(resp[3].get_string_from_utf8())
+    if not (parsed is Dictionary) or not parsed.has("job_id"):
+        return null
+
+    return await _poll(key, parsed["job_id"])
+```
+
+**Polling for the result:**
+
+```gdscript
+func _poll(key: String, job_id: String) -> Variant:
+    var headers := PackedStringArray(["Authorization: Bearer " + key])
+    for _i in range(60):   # up to 30 seconds at 0.5 s intervals
+        await get_tree().create_timer(0.5).timeout
+        var err := _http.request(
+            _API_BASE + "/api/v1/jobs/" + job_id,
+            headers, HTTPClient.METHOD_GET)
+        if err != OK:
+            return null
+        var resp: Array = await _http.request_completed
+        if resp[1] != 200:
+            return null
+        var parsed: Variant = JSON.parse_string(resp[3].get_string_from_utf8())
+        if not (parsed is Dictionary):
+            return null
+        var status: String = str(parsed.get("status", ""))
+        if status in ["completed", "succeeded", "done"]:
+            return parsed.get("result")   # inline result — your output data
+        elif status in ["failed", "error", "cancelled"]:
+            return null
+    return null   # timed out
+```
+
+When the job is complete, the result is usually returned inline in the `result` field. Some engines
+return large outputs via a presigned download URL in the `outputs` array instead — see
+`games/quantum_caverns/quantum_caverns.gd` for handling both cases.
+
+**Prefetching:**
+
+If your game generates new content at predictable moments (level transitions, new mazes), start the
+next API call as a background coroutine as soon as the player begins the current level. Call the
+async function *without* `await` to fire it and continue immediately:
+
+```gdscript
+func _start_level() -> void:
+    _apply(_ready_data)
+    _prefetch()             # fire-and-forget — runs in background
+
+func _prefetch() -> void:
+    _next_data = await _call_api(coccoon.get_api_key())
+    _next_ready = true
+```
+
+The player never waits for generation when the API is fast enough. If they finish before the
+prefetch completes, show an animated status message (dots cycling in `_process`) until
+`_next_ready` becomes true.
+
+For a complete worked example of all of the above, read
+`games/quantum_caverns/quantum_caverns.gd` — it is annotated as a tutorial.
+
+---
+
 ### Debugging
 
 Use `coccoon.print(value)` to display a value in a debug overlay on screen:

@@ -1,6 +1,6 @@
 extends Node
 
-# Demo — quantum terrain generation, and a tutorial introduction to coccoon.
+# Qubit Park — quantum terrain generation, and a tutorial introduction to coccoon.
 #
 # Coccoon renders to a virtual 32×18 cell grid. Each cell holds a sprite.
 # The engine and the MicroMoth quantum simulator are Godot autoloads, so you
@@ -34,13 +34,13 @@ func _ready() -> void:
 	# alias index (see index 4 below), which is convenient when terrain logic
 	# assigns different numeric categories to what is visually the same tile.
 	_images = coccoon.ImageList.new([
-		"games/demo/images/terrain-water.png",        # 0
-		"games/demo/images/terrain-red-flower.png",   # 1
-		"games/demo/images/terrain-grass.png",        # 2
-		"games/demo/images/terrain-path.png",         # 3
-		"games/demo/images/terrain-grass.png",        # 4  (listed twice for convenience)
-		"games/demo/images/terrain-purple-flower.png", # 5
-		"games/demo/images/terrain-tree.png",         # 6
+		"games/qubit_park/images/terrain-water.png",        # 0
+		"games/qubit_park/images/terrain-red-flower.png",   # 1
+		"games/qubit_park/images/terrain-grass.png",        # 2
+		"games/qubit_park/images/terrain-path.png",         # 3
+		"games/qubit_park/images/terrain-grass.png",        # 4  (listed twice for convenience)
+		"games/qubit_park/images/terrain-purple-flower.png", # 5
+		"games/qubit_park/images/terrain-tree.png",         # 6
 	])
 
 	# Six seed values — one for each rotation parameter in _get_image_id.

@@ -204,6 +204,27 @@ class Text extends RefCounted:
 		pass  # not yet implemented
 
 
+# ── API key storage ────────────────────────────────────────────────────────
+
+func get_api_key() -> String:
+	if OS.has_feature("web"):
+		var val = JavaScriptBridge.eval("localStorage.getItem('moth_api_key') || ''")
+		return str(val) if val != null else ""
+	if FileAccess.file_exists("user://api_key.txt"):
+		var f := FileAccess.open("user://api_key.txt", FileAccess.READ)
+		if f:
+			return f.get_as_text().strip_edges()
+	return ""
+
+func save_api_key(key: String) -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("localStorage.setItem('moth_api_key', " + JSON.stringify(key) + ")")
+	else:
+		var f := FileAccess.open("user://api_key.txt", FileAccess.WRITE)
+		if f:
+			f.store_string(key)
+
+
 # ── Not yet implemented ────────────────────────────────────────────────────
 
 class SoundList extends RefCounted:

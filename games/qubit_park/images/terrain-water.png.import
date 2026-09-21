@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxm6a0gj2ehea"
-path="res://.godot/imported/terrain-grass.png-d1c37d8d9ff27e84529a54762a826cdb.ctex"
+uid="uid://b4p0iidrdegsj"
+path="res://.godot/imported/terrain-water.png-968c085723202fe09cdb746a9d91c38f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://games/demo/images/terrain-grass.png"
-dest_files=["res://.godot/imported/terrain-grass.png-d1c37d8d9ff27e84529a54762a826cdb.ctex"]
+source_file="res://games/qubit_park/images/terrain-water.png"
+dest_files=["res://.godot/imported/terrain-water.png-968c085723202fe09cdb746a9d91c38f.ctex"]
 
 [params]
 

@@ -17,25 +17,10 @@ Coccoon is the current form: a Godot 4 game engine that renders to a virtual 32�
 
 | Game | Description |
 |------|-------------|
-| **Benji the Blob** | Lead your quantum pet to food and avoid ticks, across procedurally generated terrain computed with quantum circuits. Port of the Pico-8 original by Decodoku. |
-| **Celeste** | Full port of the Pico-8 original by Matt Thorson & Noel Berry. Sprites modfied via Moth's TESSA tool.|
-| **Deep Space O'Brien** | Quantum maze game: navigate from start to beam-out point within a step limit. The maze is generated with quantum circuits, and your previous loop's path stays visible as a dim trail. |
-| **Demo** | Terrain generation via a single qubit process. Intended as an example game.|
+| **Qubit Park** | Terrain generation via a single qubit process. The source is a good tutorial for how to use coccoon — straightforward enough to read top to bottom and see how a game is put together. |
+| **Celeste (Quantum Remix)** | Full port of the Pico-8 original by Matt Thorson & Noel Berry. Sprites modified via Moth's TESSA tool. |
+| **Quantum Caverns** | Quantum maze game: navigate from start to exit within a step limit. Maze generation uses the Moth blur-core-v1 API (falling back to local QuantumBlur). The source is a tutorial for calling the Moth API from a coccoon game. |
 
-## WIP Games
-
-| Game | Description |
-|------|-------------|
-| **Q-Snake** | Snake with a quantum twist: hitting the barrier triggers a quantum coin flip — tunnel through or die. Apple positions chosen with quantum randomness. Port of a Qiskit Camp Europe 2019 hackathon game. |
-| **Q-Qube** | Manipulate a 2-qubit quantum statevector using quantum gates, visualised as permuted 4×4 blocks on an 8×8 display. Port of a Qiskit Camp Europe 2019 hackathon game. |
-
-## PewPew Ports
-
-Ports of games from the PewPew handheld, included as examples of how PewPew games translate to coccoon.
-
-| Game | Description |
-|------|-------------|
-| **Snake** | Classic snake on an 8×8 LED grid. Port of the PewPew original. |
 
 ## Structure
 

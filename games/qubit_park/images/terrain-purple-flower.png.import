@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxl6gfdaohv5"
-path="res://.godot/imported/terrain-tree.png-e45e08bcebfaf32da6a241eff7a171d6.ctex"
+uid="uid://2leqi08yr46u"
+path="res://.godot/imported/terrain-purple-flower.png-b2f0d7c8a8aef103b2e5e4d32a3da8c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://games/demo/images/terrain-tree.png"
-dest_files=["res://.godot/imported/terrain-tree.png-e45e08bcebfaf32da6a241eff7a171d6.ctex"]
+source_file="res://games/qubit_park/images/terrain-purple-flower.png"
+dest_files=["res://.godot/imported/terrain-purple-flower.png-b2f0d7c8a8aef103b2e5e4d32a3da8c5.ctex"]
 
 [params]
 
