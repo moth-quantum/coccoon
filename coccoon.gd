@@ -9,6 +9,7 @@ const GRID_H := 18
 
 var _images: Array = []
 var _input_state: Dictionary = {"key_presses": [], "clicks": []}
+var _protected_nodes: Array = []
 
 const _KEY_MAP = {
 	KEY_UP:     0,
@@ -23,9 +24,21 @@ const _KEY_MAP = {
 	KEY_ESCAPE: -1,
 }
 
+func _clear_game_nodes() -> void:
+	for child in get_children():
+		if child not in _protected_nodes:
+			child.queue_free()
+
 func _ready() -> void:
 	Engine.max_fps = FPS
+	var _bg := ColorRect.new()
+	_bg.position = Vector2.ZERO
+	_bg.size = Vector2(GRID_W * CELL, GRID_H * CELL)
+	_bg.z_index = -1000
+	_bg.color = Color.BLACK
+	add_child(_bg)
 	_print_buffer = Text.new("", 32, 18, 0, 0, 16)
+	_protected_nodes = get_children()
 	hide_print()
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval("var c=document.getElementById('canvas');c.setAttribute('tabindex','0');c.focus();document.body.addEventListener('click',function(){c.focus();});")
@@ -70,6 +83,7 @@ class ImageList extends RefCounted:
 	var _filenames: Array
 
 	func _init(filenames: Array) -> void:
+		coccoon._clear_game_nodes()
 		_filenames = filenames
 		coccoon._images = filenames
 
