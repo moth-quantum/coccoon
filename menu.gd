@@ -45,6 +45,7 @@ func _format_name(s: String) -> String:
 	return " ".join(PackedStringArray(result))
 
 func _build_ui() -> void:
+	coccoon._clear_game_nodes()
 	coccoon.Text.new("", coccoon.GRID_W, coccoon.GRID_H, 0, 0, 16,
 		Color.WHITE, Color(0.05, 0.05, 0.15))
 

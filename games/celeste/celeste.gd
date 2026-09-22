@@ -732,7 +732,7 @@ func _place_spr(spr, px8_x: float, px8_y: float, img: int, flip_h: bool = false)
 
 # ── Render ────────────────────────────────────────────────────────────────────
 
-func _render() -> void:
+func _render_tiles() -> void:
 	for cx in range(coccoon.GRID_W):
 		for cy in range(coccoon.GRID_H):
 			_tiles[Vector2i(cx, cy)].image_id = IMG_BG
@@ -753,6 +753,7 @@ func _render() -> void:
 				_tile_canvas[Vector2i(cx, cy)] = tile
 			_tiles[Vector2i(cx, cy)].image_id = img_id
 
+func _render_entities() -> void:
 	for spr in _entity_sprs:
 		spr.image_id = IMG_CLEAR
 	for spr in _hair_sprs:
@@ -803,17 +804,20 @@ func _render() -> void:
 
 	_status_text.text = "deaths: " + str(_deaths)
 
+func _render() -> void:
+	_render_tiles()
+	_render_entities()
+
 
 # ── Process ───────────────────────────────────────────────────────────────────
 
 func _flicker_tiles() -> void:
 	for pos in _tile_canvas:
-		var base: int = _tile_canvas[pos]
-		var r: int = randi() % 3
-		_tiles[pos].image_id = base + [0, _PAIR_OFFSET, _SINGLE_OFFSET][r]
+		if randf() < 1.0 / 30.0:  # each tile flickers ~once per second at 30 fps
+			var base: int = _tile_canvas[pos]
+			_tiles[pos].image_id = base + [0, _PAIR_OFFSET, _SINGLE_OFFSET][randi() % 3]
 
 func _process(_delta: float) -> void:
-	_flicker_tiles()
 	var inp: Dictionary = coccoon.update()
 	var keys: Array = inp["key_presses"]
 	var just_pressed: Array = []
@@ -824,6 +828,7 @@ func _process(_delta: float) -> void:
 
 	if _title:
 		_update_snow()
+		_flicker_tiles()
 		if K_DASH in just_pressed or K_JUMP2 in just_pressed:
 			_hide_title()
 		return
@@ -859,7 +864,8 @@ func _process(_delta: float) -> void:
 				dead = true
 				break
 	if dead:
-		_render()
+		_render_entities()
+		_flicker_tiles()
 		return
 
 	for obj in _objects:
@@ -869,4 +875,5 @@ func _process(_delta: float) -> void:
 			"fruit":      _update_fruit(obj)
 			"platform":   _update_platform(obj)
 
-	_render()
+	_render_entities()
+	_flicker_tiles()
