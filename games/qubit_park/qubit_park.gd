@@ -19,10 +19,13 @@ var _pos_y: int = 0
 
 const TERRAIN_TYPES := 6
 
-# Six random seed values in (0, 0.5), generated once at startup.
-# They parameterise the rotation angles so every run produces a different landscape.
-# Use a fixed seed (e.g. set all entries manually) to get the same world each time.
 var _s: Array = []
+
+var _title: bool = true
+var _title_text
+var _info_text
+var _prev_keys: Array = []
+var _title_gen_done: bool = false
 
 
 func _ready() -> void:
@@ -58,9 +61,35 @@ func _ready() -> void:
 	# tree operations and keeps the frame budget flat regardless of world size.
 	for dx in range(0, coccoon.GRID_W):
 		for dy in range(0, coccoon.GRID_H):
-			_sprites[str(dx) + "," + str(dy)] = coccoon.Sprite.new(1, float(dx), float(dy), 1)
+			_sprites[str(dx) + "," + str(dy)] = coccoon.Sprite.new(2, float(dx), float(dy), 0)
 
-	_refresh_terrain()
+	_title_text = coccoon.Text.new(
+		"QUBIT PARK",
+		26.0, 3.5, 3.0, 12.5,
+		56, Color.WHITE, Color(0.03, 0.08, 0.03, 0.88))
+	_info_text = coccoon.Text.new(
+		"Quantum terrain generator\n\n" +
+		"Every tile is computed from a single-qubit circuit\n" +
+		"whose rotation angles depend on its world position.\n\n" +
+		"Arrow keys or Space to start\n" +
+		"Esc to menu",
+		26.0, 6.5, 3.0, 5.0, 18, Color(0.75, 1.0, 0.75), Color(0.03, 0.08, 0.03, 0.88))
+	_generate_title_bg()  # fire-and-forget: paints terrain behind the title text
+
+
+# ── Title background ──────────────────────────────────────────────────────────
+#
+# Runs as a fire-and-forget coroutine: generates the starting terrain using
+# the real quantum algorithm, painting one row per frame so the title text
+# remains responsive. When the player presses Space the terrain is already
+# showing (or nearly so).
+
+func _generate_title_bg() -> void:
+	for dy in range(coccoon.GRID_H):
+		for dx in range(coccoon.GRID_W):
+			_sprites[str(dx) + "," + str(dy)].image_id = _get_image_id(dx, dy)
+		await get_tree().process_frame
+	_title_gen_done = true
 
 
 # ── Quantum terrain ────────────────────────────────────────────────────────────
@@ -129,18 +158,35 @@ func _refresh_terrain() -> void:
 # why we move only one cell at a time and only when a key is pressed.
 func _process(_delta: float) -> void:
 	var inp: Dictionary = coccoon.update()
+	var keys: Array = inp["key_presses"]
+	var just_pressed: Array = []
+	for k in keys:
+		if k not in _prev_keys:
+			just_pressed.append(k)
+	_prev_keys = keys.duplicate()
+
+	if _title:
+		if 4 in just_pressed or 0 in just_pressed or 1 in just_pressed or 2 in just_pressed or 3 in just_pressed:
+			_title = false
+			for t in [_title_text, _info_text]:
+				t.set_font_color(Color(0, 0, 0, 0))
+				t.set_background_color(Color(0, 0, 0, 0))
+			if not _title_gen_done:
+				_refresh_terrain()  # snap any unfinished rows synchronously
+		return
+
 	var moved := false
-	if 0 in inp["key_presses"]:
-		_pos_y += 1   # walk up   (world scrolls down)
+	if 0 in keys:
+		_pos_y += 1
 		moved = true
-	if 1 in inp["key_presses"]:
-		_pos_x += 1   # walk right
+	if 1 in keys:
+		_pos_x += 1
 		moved = true
-	if 2 in inp["key_presses"]:
-		_pos_y -= 1   # walk down
+	if 2 in keys:
+		_pos_y -= 1
 		moved = true
-	if 3 in inp["key_presses"]:
-		_pos_x -= 1   # walk left
+	if 3 in keys:
+		_pos_x -= 1
 		moved = true
 	if moved:
 		_refresh_terrain()
