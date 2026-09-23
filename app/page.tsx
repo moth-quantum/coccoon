@@ -25,9 +25,11 @@ const GAMES: GameCard[] = [
   },
   {
     title: "Quantum Caverns",
-    blurb: "A quantum maze game: navigate from start to exit within a step limit, with maze generation from quantum blur.",
-    status: "Not ported",
-    note: "Depends on the external Moth blur-core API, so it isn't included here.",
+    blurb:
+      "A quantum maze game: navigate from start to exit within a step limit. Maze generation is quantum blur, run on the Moth platform (with a local fallback).",
+    href: "/play/quantum-caverns",
+    status: "Playable",
+    note: "The source doubles as a tutorial for calling the Moth platform from a coccoon game.",
   },
 ]
 
@@ -41,10 +43,19 @@ export default function MenuPage() {
             coccoon
           </h1>
           <p className="max-w-2xl text-pretty text-base leading-relaxed text-emerald-100/80">
-            A quantum game engine and incubator of quantum games. The engine renders to a virtual{" "}
-            <span className="font-mono text-emerald-300">32×18</span> cell grid, and simple quantum circuits are
-            provided by <span className="font-mono text-emerald-300">MicroMoth</span>, a lightweight statevector
-            simulator running entirely in the browser.
+            A quantum game engine and incubator: a small, sharable way to build games whose logic runs on{" "}
+            <a
+              href="https://platform.mothquantum.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-emerald-300 underline underline-offset-2 hover:text-emerald-200"
+            >
+              Atlas, the Moth platform
+            </a>
+            . The engine renders to a virtual <span className="font-mono text-emerald-300">32×18</span> cell grid; quantum
+            work runs on Atlas when a key is present, and falls back to{" "}
+            <span className="font-mono text-emerald-300">MicroMoth</span>, a lightweight statevector simulator running
+            entirely in the browser, when it isn&apos;t.
           </p>
         </header>
 
