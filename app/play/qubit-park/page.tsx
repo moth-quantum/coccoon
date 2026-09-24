@@ -55,7 +55,7 @@ export default function QubitParkPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-emerald-300/90">
           <span>
-            <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Arrow keys</kbd> scroll the world
+            <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Arrows / WASD</kbd> scroll the world
           </span>
           <span>
             <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Space</kbd> start

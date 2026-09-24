@@ -131,7 +131,7 @@ export class QubitPark implements Game {
       "Quantum terrain generator\n\n" +
         "Every tile is computed from a single-qubit circuit\n" +
         "whose rotation angles depend on its world position.\n\n" +
-        "Arrow keys or Space to start\n" +
+        "Arrow keys / WASD or Space to start\n" +
         "Esc to menu",
       26.0,
       6.5,
@@ -199,8 +199,9 @@ export class QubitPark implements Game {
     }
 
     // engine.update() advances the engine and returns this frame's input.
-    // inp.key_presses is an array of the direction/action keys held THIS frame:
-    //   0 = down, 1 = right, 2 = up, 3 = left, 4 = action/space.
+    // inp.key_presses is an array of the direction/action keys held THIS frame.
+    // Direction codes come from either the arrow keys or WASD (synonymous):
+    //   0 = up, 1 = right, 2 = down, 3 = left, 4 = start/space.
     const inp = engine.update()
     const keys = inp.key_presses
 

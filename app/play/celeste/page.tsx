@@ -56,13 +56,13 @@ export default function CelestePage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-sky-300/90">
           <span>
-            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Arrow keys</kbd> move
+            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Arrows / WASD</kbd> move
           </span>
           <span>
-            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">S</kbd> jump
+            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">K</kbd> jump
           </span>
           <span>
-            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">A</kbd> dash
+            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">J</kbd> dash
           </span>
           <span>
             <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Esc</kbd> back to menu

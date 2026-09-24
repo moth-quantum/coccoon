@@ -28,17 +28,24 @@ function toCss(c: Color): string {
   return `rgba(${to255(c.r)}, ${to255(c.g)}, ${to255(c.b)}, ${c.a})`
 }
 
-// Key codes match the original engine's _KEY_MAP.
+// Key codes surfaced by update(). WASD mirrors the arrow keys as a synonymous
+// d-pad (up/right/down/left = 0/1/2/3), IJKL are the four face buttons
+// (5/6/7/8), and Space (4) is start. Both arrow and WASD keys produce the same
+// direction codes, so games only ever read the direction, never which key.
 const KEY_MAP: Record<string, number> = {
   ArrowUp: 0,
   ArrowRight: 1,
   ArrowDown: 2,
   ArrowLeft: 3,
+  KeyW: 0,
+  KeyD: 1,
+  KeyS: 2,
+  KeyA: 3,
   Space: 4,
-  KeyW: 5,
-  KeyA: 6,
-  KeyS: 7,
-  KeyD: 8,
+  KeyI: 5,
+  KeyJ: 6,
+  KeyK: 7,
+  KeyL: 8,
   Escape: -1,
 }
 

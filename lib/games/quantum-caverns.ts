@@ -125,7 +125,7 @@ export class QuantumCaverns implements Game {
       engine,
       "Navigate from start (red) to exit (blue)\nwithin the step limit.\n\n" +
         "Your previous route stays visible as a trail.\n\n" +
-        "Arrow keys to move\n" +
+        "Arrow keys / WASD to move\n" +
         "Space for a new maze\n" +
         "Esc to menu",
       26.0,
@@ -435,7 +435,7 @@ export class QuantumCaverns implements Game {
     return largest
   }
 
-  // ── Game loop ────────────────────────────────────────────────────────────────
+  // ── Game loop ────────────────────────────────────��───────────────────────────
 
   private _resetLoop(): void {
     this._player = this._start

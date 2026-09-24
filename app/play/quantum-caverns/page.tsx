@@ -177,7 +177,7 @@ export default function QuantumCavernsPage() {
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-indigo-200/90">
           <span>
-            <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Arrow keys</kbd> move
+            <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Arrows / WASD</kbd> move
           </span>
           <span>
             <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Space</kbd> new maze

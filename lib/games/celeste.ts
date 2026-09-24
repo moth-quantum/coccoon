@@ -22,16 +22,16 @@ const L = 16 // playfield size in tiles
 const OX = 8 // grid x offset of the playfield
 const OY = 1 // grid y offset of the playfield
 
-// Input key codes as surfaced by coccoon.update(). The original mapped space/S
-// to jump and A to dash; we keep S=jump and A=dash, and also accept the arrow /
-// space defaults so the game is playable without memorising the letters.
+  // Input key codes as surfaced by coccoon.update(). Movement is the d-pad
+  // (arrows or WASD, both synonymous). The face buttons are IJKL: K (jump) and
+  // J (dash). Space also works as jump so the game is playable one-handed.
 const K_UP = 0
 const K_RIGHT = 1
 const K_DOWN = 2
 const K_LEFT = 3
 const K_SPACE = 4
-const K_A = 6 // dash
-const K_S = 7 // jump
+const K_DASH = 6 // J button
+const K_JUMP = 7 // K button
 
 // Image ids. 0..127 are the original sprite tiles; the block after that holds
 // solid-colour helpers and the two flicker variant banks.
@@ -155,9 +155,9 @@ export class Celeste implements Game {
     }
     this._titleText.text =
       "CELESTE — quantum remix\n\n" +
-      "arrows: move   S: jump   A: dash\n\n" +
+      "arrows / WASD: move   K: jump   J: dash\n\n" +
       "Original by Maddy Thorson & Noel Berry\n\n" +
-      "press S or A to begin"
+      "press K or J to begin"
     this._titleText.set_font_color(color(0.7, 0.72, 0.82))
   }
 
@@ -438,13 +438,13 @@ export class Celeste implements Game {
     const onGround = this._playerIsSolid(p, 0, 1)
     const onIce = this._playerIsIce(p, 0, 1)
 
-    const jumpBtn = has(K_S) || has(K_SPACE)
+    const jumpBtn = has(K_JUMP) || has(K_SPACE)
     const jump = jumpBtn && !p["p_jump"]
     p["p_jump"] = jumpBtn
     if (jump) p["jbuffer"] = 4
     else if ((p["jbuffer"] as number) > 0) p["jbuffer"] = (p["jbuffer"] as number) - 1
 
-    const dashBtn = has(K_A)
+    const dashBtn = has(K_DASH)
     const dash = dashBtn && !p["p_dash"]
     p["p_dash"] = dashBtn
 
@@ -792,7 +792,7 @@ export class Celeste implements Game {
     if (this._title) {
       this._updateSnow()
       this._flickerTiles()
-      if (justPressed.includes(K_A) || justPressed.includes(K_S) || justPressed.includes(K_SPACE)) this._hideTitle()
+      if (justPressed.includes(K_DASH) || justPressed.includes(K_JUMP) || justPressed.includes(K_SPACE)) this._hideTitle()
       return
     }
 
