@@ -18,7 +18,7 @@
 // process(). JS is single-threaded, so the flags stay consistent.
 
 import { Coccoon, ImageList, Sprite, Text, color, Colors, type Game } from "@/lib/coccoon"
-import { posKey, type HeightMap } from "@/lib/quantumblur"
+import { posKey, logNormalizeHeight, type HeightMap } from "@/lib/quantumblur"
 
 const VIEW_W = 32
 const VIEW_H = 17
@@ -323,7 +323,7 @@ export class QuantumCaverns implements Game {
       arr = data
     } else if (data && typeof data === "object") {
       const obj = data as Record<string, unknown>
-      arr = obj.values ?? obj.result ?? null
+      arr = obj.values ?? obj.result ?? obj.output ?? null
     }
     if (!Array.isArray(arr) || arr.length === 0) return null
     const height: HeightMap = {}
@@ -334,7 +334,16 @@ export class QuantumCaverns implements Game {
       const cols = Math.min(L, row.length)
       for (let x = 0; x < cols; x++) height[posKey(x, y)] = Number(row[x])
     }
-    return height
+    // We start from a mostly-zero field with a few scattered peaks, so the
+    // blurred result the platform returns is a smooth probability field: a
+    // handful of small peaks (max ~0.9) with a long near-zero tail. Only ~2% of
+    // cells sit above 0.5, so thresholding the raw values gives an almost empty
+    // cave. QuantumBlur's own decoder solves this with circuit2height(...,
+    // useLog=true): it divides by the max, then remaps every cell on a log scale
+    // keyed to the smallest non-zero value, spreading the heights across [0,1]
+    // so ~half cross 0.5. We apply that identical transform to the platform
+    // output here, so the online maze looks like the local-simulator one.
+    return logNormalizeHeight(height)
   }
 
   // ── Maze construction from height map ────────────────────────────────────────

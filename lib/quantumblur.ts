@@ -105,6 +105,34 @@ export function height2circuit(height: HeightMap, Lx: number, Ly = -1, useLog = 
   return qc
 }
 
+// Log-normalize a height map in place of the values, matching the useLog branch
+// of probs2height. The Moth platform returns a raw probability field (one peak,
+// a long near-zero tail); this spreads it across [0,1] so a 0.5 threshold
+// produces a balanced maze — the same transform the local blur applies when
+// decoding with circuit2height(..., useLog=true).
+export function logNormalizeHeight(height: HeightMap): HeightMap {
+  let maxH = 1e-10
+  for (const pos in height) if (height[pos] > maxH) maxH = height[pos]
+  const out: HeightMap = {}
+  for (const pos in height) out[pos] = height[pos] / maxH
+
+  let minH = 1.0
+  for (const pos in out) {
+    const v = out[pos]
+    if (v > 1e-100 && v < minH) minH = v
+  }
+  const logBase = Math.log(1.0 / minH)
+  for (const pos in out) {
+    const v = out[pos]
+    if (v > 1e-100 && logBase > 1e-10) {
+      out[pos] = Math.max(Math.log(v / minH) / logBase, 0.0)
+    } else {
+      out[pos] = 0.0
+    }
+  }
+  return out
+}
+
 export function probs2height(probs: Record<string, number>, Lx: number, Ly = -1, useLog = false): HeightMap {
   if (Ly < 0) Ly = Lx
   const grid = makeGrid(Lx, Ly)
