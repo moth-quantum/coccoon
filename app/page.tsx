@@ -72,6 +72,25 @@ export default function MenuPage() {
           </ul>
         </section>
 
+        <section aria-labelledby="create-heading" className="flex flex-col gap-6">
+          <h2 id="create-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
+            Create
+          </h2>
+          <Link href="/create" className="block">
+            <div className="flex flex-col gap-3 rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-6 transition-colors hover:border-emerald-500 hover:bg-emerald-900/40 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2">
+                <h3 className="font-mono text-base font-semibold text-emerald-200">Code your own cartridge</h3>
+                <p className="max-w-2xl text-pretty text-sm leading-relaxed text-emerald-100/70">
+                  A fantasy-console-style editor. Write JavaScript against the same engine the built-in games use —
+                  sprites, text, per-frame input, and the <span className="font-mono text-emerald-300">MicroMoth</span>{" "}
+                  quantum simulator — and run it live in the browser.
+                </p>
+              </div>
+              <span className="shrink-0 font-mono text-xs uppercase tracking-widest text-emerald-400">Open editor →</span>
+            </div>
+          </Link>
+        </section>
+
         <section aria-labelledby="about-heading" className="flex flex-col gap-4 border-t border-emerald-950 pt-10">
           <h2 id="about-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
             About this port
