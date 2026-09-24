@@ -216,8 +216,8 @@ export default function CreatePage() {
               href="/llms.txt"
               target="_blank"
               rel="noreferrer"
-              title="The LLM starter kit: engine reference, all demo games, and authoring rules for vibe-coding a cartridge."
-              className="rounded-md border border-emerald-950 bg-neutral-900/60 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-emerald-100/70 transition-colors hover:border-emerald-700"
+                title="The LLM starter kit: engine reference, all demo games, and authoring rules for vibe-coding a cartridge."
+                className="rounded-md border border-emerald-800/70 px-3 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:bg-emerald-900/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
             >
               LLM reference
             </a>
