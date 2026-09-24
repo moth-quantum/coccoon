@@ -17,6 +17,8 @@ export default function CreatePage() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const logIdRef = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const consoleRef = useRef<HTMLDivElement>(null)
+  const logScrollRef = useRef<HTMLDivElement>(null)
 
   const handleDownload = useCallback(() => {
     const cart = CARTRIDGES.find((c) => c.id === activeId)
@@ -67,6 +69,10 @@ export default function CreatePage() {
     (message: string) => {
       pushLog("error", message)
       setRunning(false)
+      requestAnimationFrame(() => {
+        consoleRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+        if (logScrollRef.current) logScrollRef.current.scrollTop = logScrollRef.current.scrollHeight
+      })
     },
     [pushLog],
   )
@@ -273,7 +279,7 @@ export default function CreatePage() {
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
+            <div ref={consoleRef} className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs uppercase tracking-widest text-emerald-600">Console</span>
                 {logs.length > 0 ? (
@@ -286,7 +292,10 @@ export default function CreatePage() {
                   </button>
                 ) : null}
               </div>
-              <div className="h-32 overflow-auto rounded-lg border border-emerald-950 bg-black/80 p-3 font-mono text-xs leading-relaxed">
+              <div
+                ref={logScrollRef}
+                className="h-32 overflow-auto rounded-lg border border-emerald-950 bg-black/80 p-3 font-mono text-xs leading-relaxed"
+              >
                 {logs.length === 0 ? (
                   <p className="text-emerald-100/30">No output yet.</p>
                 ) : (
