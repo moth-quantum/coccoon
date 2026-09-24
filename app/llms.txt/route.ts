@@ -18,7 +18,7 @@ const SECTIONS: { rel: string; heading: string; note: string }[] = [
   {
     rel: "lib/coccoon.ts",
     heading: "lib/coccoon.ts — the engine",
-    note: "The whole engine: the 32x18 grid, ImageList/Sprite/Text, color/Colors, SoundList/Sound/LOOP audio, per-frame input (key_presses), and the Game interface. A cartridge imports from here.",
+    note: "The whole engine: the 32x18 grid, ImageList/Sprite/Text, color/Colors, SoundList/Sound/LOOP audio, the asset() helper for uploaded PNGs/WAVs, per-frame input (key_presses), and the Game interface. A cartridge imports from here.",
   },
   {
     rel: "lib/micromoth.ts",
