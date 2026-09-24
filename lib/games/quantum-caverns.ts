@@ -42,6 +42,8 @@ const DIRS: Vec[] = [
   { x: 0, y: -1 },
 ]
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 export class QuantumCaverns implements Game {
   private _engine!: Coccoon
   private _getApiKey: () => string
@@ -262,21 +264,42 @@ export class QuantumCaverns implements Game {
 
   // ── API: blur via the Moth platform ─────────────────────────────────────────
   //
-  // The server route owns the async job model (submit -> poll -> download);
-  // here we just hand it the initial grid and the caller's key, then decode the
-  // blurred grid it returns. Any failure resolves to null.
+  // The platform's engine is asynchronous: we submit a job, then poll it until
+  // it completes (which can take a minute or two). The server proxy owns the
+  // exact HTTP contract; here we drive it with two fast calls — one "submit" to
+  // get a job id, then repeated "poll"s from the browser — so no single request
+  // is held open for the whole job. Any failure resolves to null.
 
   private async _genHeightApi(key: string): Promise<HeightMap | null> {
     const height = this._makeInitialHeight()
     try {
-      const res = await fetch("/api/moth-blur", {
+      // 1. Submit the initial grid and get a job id back immediately.
+      const submit = await fetch("/api/moth-blur", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ values: this._heightToArray(height), strength: 0.25, key }),
+        body: JSON.stringify({ action: "submit", values: this._heightToArray(height), strength: 0.25, key }),
       })
-      if (!res.ok) return null
-      const data = (await res.json()) as { result?: unknown }
-      return this._extractHeight(data.result)
+      if (!submit.ok) return null
+      const sd = (await submit.json()) as { jobId?: string }
+      if (!sd.jobId) return null
+
+      // 2. Poll until the job completes. The platform can take a couple of
+      //    minutes, so we keep polling until a generous deadline; transient
+      //    poll errors are ignored rather than aborting the whole generation.
+      const deadline = Date.now() + 4 * 60 * 1000
+      while (Date.now() < deadline) {
+        await sleep(2500)
+        const poll = await fetch("/api/moth-blur", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "poll", jobId: sd.jobId, key }),
+        })
+        if (!poll.ok) continue
+        const pd = (await poll.json()) as { status?: string; output?: unknown }
+        if (pd.status === "completed") return this._extractHeight(pd.output)
+        if (pd.status === "failed" || pd.status === "error" || pd.status === "cancelled") return null
+      }
+      return null
     } catch {
       return null
     }

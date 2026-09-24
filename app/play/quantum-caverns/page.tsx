@@ -98,7 +98,7 @@ export default function QuantumCavernsPage() {
                 ? "Add an Atlas API key to play"
                 : via === "error"
                   ? "Couldn't reach the Moth platform"
-                  : "Contacting the Moth platform…"}
+                  : "Generating on the Moth platform… (can take a minute or two)"}
           </span>
         </div>
 
