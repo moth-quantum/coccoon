@@ -106,11 +106,12 @@ export default function MenuPage() {
           >
             <div className="flex flex-col gap-3 rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-6 transition-colors hover:border-emerald-500 hover:bg-emerald-900/40 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-2">
-                <h3 className="font-mono text-base font-semibold text-emerald-200">Code your own cartridge</h3>
+                <h3 className="font-mono text-base font-semibold text-emerald-200">Load a cartridge</h3>
                 <p className="max-w-2xl text-pretty text-sm leading-relaxed text-emerald-100/70">
-                  A fantasy-console-style editor. Write JavaScript with the same engine the built-in games use —
-                  sprites, text, per-frame input, and the <span className="font-mono text-emerald-300">MicroMoth</span>{" "}
-                  quantum simulator — and run it live in the browser.
+                  A fantasy-console-style editor. Write your own cartridge — or load one from a file — using the same
+                  engine the built-in games use: sprites, text, audio, per-frame input, and the{" "}
+                  <span className="font-mono text-emerald-300">MicroMoth</span> quantum simulator. Run it live in the
+                  browser.
                 </p>
               </div>
               <span className="shrink-0 font-mono text-xs uppercase tracking-widest text-emerald-400">Open editor →</span>

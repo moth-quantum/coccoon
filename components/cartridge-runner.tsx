@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import * as ts from "typescript"
 import {
   Coccoon,
   ImageList,
@@ -18,6 +19,27 @@ import {
 } from "@/lib/coccoon"
 import { MicroMoth } from "@/lib/micromoth"
 
+// The modules a cartridge is allowed to import from. These are exactly the
+// primitives the built-in demo games use, so a cartridge is written the same
+// way a demo is: `import { ... } from "@/lib/coccoon"` plus an exported class.
+const CARTRIDGE_MODULES: Record<string, Record<string, unknown>> = {
+  "@/lib/coccoon": {
+    Coccoon,
+    ImageList,
+    Sprite,
+    Text,
+    color,
+    Colors,
+    GRID_W,
+    GRID_H,
+    CELL,
+    SoundList,
+    Sound,
+    LOOP,
+  },
+  "@/lib/micromoth": { MicroMoth },
+}
+
 export type LogLevel = "log" | "warn" | "error"
 
 type CartridgeRunnerProps = {
@@ -30,44 +52,67 @@ type CartridgeRunnerProps = {
   onExit?: () => void
 }
 
-// Build a Game from user source. Throws on compile error or if the required
-// entry points are missing.
+// Build a Game from user source. The cartridge is authored exactly like a
+// built-in demo game: it imports primitives from "@/lib/coccoon" (and
+// optionally "@/lib/micromoth") and exports a class implementing Game.
+//
+// Because the browser has no module resolver, we transpile the TypeScript to
+// CommonJS with the TypeScript compiler and run it with a `require` shim that
+// hands back the injected engine modules. Throws on compile error, a
+// disallowed import, or a missing/invalid exported class.
 function compileCartridge(code: string, sandboxConsole: Console): Game {
-  const factory = new Function(
-    "ImageList",
-    "Sprite",
-    "Text",
-    "color",
-    "Colors",
-    "GRID_W",
-    "GRID_H",
-    "SoundList",
-    "Sound",
-    "LOOP",
-    "MicroMoth",
-    "console",
-    `"use strict";
-${code}
-if (typeof ready !== "function" || typeof process !== "function") {
-  throw new Error("Your cartridge must define ready(engine) and process(delta, engine).");
-}
-return { ready: ready, process: process };`,
-  )
+  let js: string
+  try {
+    js = ts.transpileModule(code, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2020,
+        esModuleInterop: true,
+      },
+      reportDiagnostics: false,
+    }).outputText
+  } catch (err) {
+    throw new Error("Could not compile cartridge: " + errText(err))
+  }
 
-  return factory(
-    ImageList,
-    Sprite,
-    Text,
-    color,
-    Colors,
-    GRID_W,
-    GRID_H,
-    SoundList,
-    Sound,
-    LOOP,
-    MicroMoth,
-    sandboxConsole,
-  ) as Game
+  const requireShim = (id: string): Record<string, unknown> => {
+    const mod = CARTRIDGE_MODULES[id]
+    if (!mod) {
+      throw new Error(
+        `Cannot import "${id}". Cartridges may only import from "@/lib/coccoon" and "@/lib/micromoth".`,
+      )
+    }
+    return mod
+  }
+
+  const moduleObj = { exports: {} as Record<string, unknown> }
+  const factory = new Function(
+    "require",
+    "module",
+    "exports",
+    "console",
+    `"use strict";\n${js}`,
+  )
+  factory(requireShim, moduleObj, moduleObj.exports, sandboxConsole)
+
+  // Accept `export default class ...` or a single named `export class ...`.
+  const exported = moduleObj.exports
+  const GameClass =
+    typeof exported.default === "function"
+      ? exported.default
+      : Object.values(exported).find((v) => typeof v === "function")
+
+  if (typeof GameClass !== "function") {
+    throw new Error(
+      'Your cartridge must export a game class, e.g. `export class MyGame implements Game { ready(engine) {} process(delta, engine) {} }`.',
+    )
+  }
+
+  const instance = new (GameClass as new () => Game)()
+  if (typeof instance.ready !== "function" || typeof instance.process !== "function") {
+    throw new Error("Your cartridge class must define ready(engine) and process(delta, engine).")
+  }
+  return instance
 }
 
 export function CartridgeRunner({

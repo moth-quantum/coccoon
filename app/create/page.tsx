@@ -21,11 +21,11 @@ export default function CreatePage() {
   const handleDownload = useCallback(() => {
     const cart = CARTRIDGES.find((c) => c.id === activeId)
     const base = (cart?.name ?? "cartridge").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
-    const blob = new Blob([code], { type: "text/javascript" })
+    const blob = new Blob([code], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${base || "cartridge"}.js`
+    a.download = `${base || "cartridge"}.ts`
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -107,7 +107,7 @@ export default function CreatePage() {
             <div className="flex flex-col gap-1">
               <p className="font-mono text-xs uppercase tracking-[0.35em] text-emerald-500">coccoon · create</p>
               <h1 className="font-mono text-2xl font-bold tracking-tight text-emerald-300 sm:text-3xl">
-                Code a cartridge
+                Load a cartridge
               </h1>
             </div>
             <Link
@@ -118,15 +118,25 @@ export default function CreatePage() {
             </Link>
           </div>
           <p className="max-w-3xl text-pretty text-sm leading-relaxed text-emerald-100/75">
-            Write JavaScript that drives the same engine the built-in games use. Define{" "}
+            Write a cartridge exactly like the built-in demos: import from{" "}
+            <span className="font-mono text-emerald-300">@/lib/coccoon</span> (and{" "}
+            <span className="font-mono text-emerald-300">@/lib/micromoth</span>) and{" "}
+            <code className="rounded bg-emerald-950/70 px-1 py-0.5 font-mono text-emerald-300">export</code> a class that{" "}
+            <code className="rounded bg-emerald-950/70 px-1 py-0.5 font-mono text-emerald-300">implements Game</code>{" "}
+            with{" "}
             <code className="rounded bg-emerald-950/70 px-1 py-0.5 font-mono text-emerald-300">ready(engine)</code> and{" "}
             <code className="rounded bg-emerald-950/70 px-1 py-0.5 font-mono text-emerald-300">
               process(delta, engine)
             </code>
-            . Available globals:{" "}
-            <span className="font-mono text-emerald-300">
-              ImageList, Sprite, Text, color, Colors, GRID_W, GRID_H, MicroMoth, console
-            </span>
+            . Reading a demo&apos;s source teaches you everything you need here. To vibe-code a game, hand an LLM the{" "}
+            <a
+              href="/llms.txt"
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-emerald-300 underline underline-offset-4 hover:text-emerald-200"
+            >
+              starter kit
+            </a>
             .
           </p>
         </header>
@@ -215,7 +225,7 @@ export default function CreatePage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".js,.txt,text/javascript,application/javascript,text/plain"
+                  accept=".ts,.js,.txt,text/typescript,text/javascript,application/javascript,text/plain"
                   onChange={handleFileChange}
                   className="hidden"
                 />
