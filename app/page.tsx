@@ -97,7 +97,7 @@ export default function MenuPage() {
 
         <section aria-labelledby="create-heading" className="flex flex-col gap-6">
           <h2 id="create-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
-            Create
+            Create a game
           </h2>
           <Link
             href="/create"
