@@ -30,7 +30,7 @@ function toCss(c: Color): string {
 
 // Key codes surfaced by update(). WASD mirrors the arrow keys as a synonymous
 // d-pad (up/right/down/left = 0/1/2/3), IJKL are the four face buttons
-// (5/6/7/8), and Space (4) is start. Both arrow and WASD keys produce the same
+// (5/6/7/8), and Space/Enter (4) is start. Both arrow and WASD keys produce the same
 // direction codes, so games only ever read the direction, never which key.
 const KEY_MAP: Record<string, number> = {
   ArrowUp: 0,
@@ -42,6 +42,7 @@ const KEY_MAP: Record<string, number> = {
   KeyS: 2,
   KeyA: 3,
   Space: 4,
+  Enter: 4,
   KeyI: 5,
   KeyJ: 6,
   KeyK: 7,
@@ -444,7 +445,7 @@ export class Coccoon {
     if (!(codeKey in KEY_MAP)) return
     // A keypress is a user gesture — unblock audio the browser held suspended.
     if (this._audioCtx && this._audioCtx.state === "suspended") void this._audioCtx.resume()
-    if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault()
+    if (e.code === "Space" || e.code === "Enter" || e.code.startsWith("Arrow")) e.preventDefault()
     const code = KEY_MAP[codeKey]
     if (code === -1) {
       if (this.onEscape) this.onEscape()

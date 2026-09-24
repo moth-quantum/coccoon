@@ -170,7 +170,7 @@ export default function QuantumCavernsPage() {
               </button>
             ) : null}
             <span className="font-mono text-[11px] text-indigo-300/50">
-              {hasKey ? "applies to the next maze (Space)" : "save a key to generate the maze"}
+                {hasKey ? "applies to the next maze (Space / Enter)" : "save a key to generate the maze"}
             </span>
           </form>
         </div>

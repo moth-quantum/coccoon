@@ -24,7 +24,7 @@ const OY = 1 // grid y offset of the playfield
 
   // Input key codes as surfaced by coccoon.update(). Movement is the d-pad
   // (arrows or WASD, both synonymous). The face buttons are IJKL: K (jump) and
-  // J (dash). Space also works as jump so the game is playable one-handed.
+  // J (dash). Space/Enter also work as jump so the game is playable one-handed.
 const K_UP = 0
 const K_RIGHT = 1
 const K_DOWN = 2
@@ -157,7 +157,7 @@ export class Celeste implements Game {
       "CELESTE — quantum remix\n\n" +
       "arrows / WASD: move   K: jump   J: dash\n\n" +
       "Original by Maddy Thorson & Noel Berry\n\n" +
-      "press K or J to begin"
+      "press K, J, Space or Enter to begin"
     this._titleText.set_font_color(color(0.7, 0.72, 0.82))
   }
 

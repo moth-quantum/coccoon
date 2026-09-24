@@ -61,7 +61,7 @@ export default function QubitParkPage() {
             <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Arrows / WASD</kbd> scroll the world
           </span>
           <span>
-            <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Space</kbd> start
+            <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Space / Enter</kbd> start
           </span>
           <span>
               <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
