@@ -74,7 +74,8 @@ Rules:
   is exported from those two modules (their full source is below).
 - Export exactly one class implementing Game (ready + process).
 - The grid is GRID_W (32) wide by GRID_H (18) tall. y is measured from the
-  BOTTOM (y=0 is the bottom row). You place sprites on cells; higher z draws on top.
+  BOTTOM (y=0 is the bottom row, y=17 is the top row). You place sprites on
+  cells; higher z draws on top.
 - Input key codes: 0=Up 1=Right 2=Down 3=Left (arrows and WASD are synonyms),
   4=Start (Space/Enter), 5=I 6=J 7=K 8=L. A held key repeats every frame;
   diff against the previous frame for one-shot presses.
@@ -82,13 +83,49 @@ Rules:
   (add LOOP for looping music). Audio starts after the first input.
 - Paste your finished class into the Create editor and press Run.
 
-## Quantum: local vs. Atlas
+## Sizing & layout guardrails (READ THIS or your text will be unreadable)
 
-- LOCAL (no key): import { MicroMoth } from "@/lib/micromoth" for an in-browser
-  statevector simulator. Instant, offline. See Qubit Park.
-- ATLAS (real hardware/simulators on the Moth platform): submit a job to a
-  server proxy that calls the Atlas API. See quantum-caverns.ts and the
-  moth-blur proxy below. This requires a key.
+The canvas is a FIXED 1280x720 pixels: GRID_W(32) x GRID_H(18) cells, each
+cell CELL = 40px square. Two different coordinate systems coexist, and mixing
+them up is the most common mistake:
+
+- Sprite x/y/size and Text x/y/width/height are in GRID CELLS (0..31, 0..17),
+  NOT pixels. A Text with width=10, height=2 occupies 400x80 px.
+- Text fontSize is in RAW CANVAS PIXELS, not cells and not CSS points. On a
+  720px-tall canvas, 12-16px text is nearly invisible. Use these benchmarks:
+    - Titles / headers:      36-56 px
+    - Subtitles / status:    24-28 px
+    - Small / micro labels:  16-20 px  (never below 14)
+  The Text default fontSize is 16 — fine for a small HUD label, too small for
+  a title. Always set fontSize explicitly for headings.
+- Text boxes clip and word-wrap to their box; they do NOT auto-grow. Line
+  height is fontSize * 1.35 plus ~6px padding. Budget box HEIGHT (in cells) so
+  every line fits: at fontSize 24 one line needs ~1 cell of height, so a
+  2-3 line box needs height 2-3. Undersized boxes cut off text.
+- y is bottom-up: put a top header around y = 15..16, a bottom HUD around
+  y = 0..1. Remember a box of height h is anchored at its bottom-left cell, so
+  a header at the top is roughly y = GRID_H - height.
+
+## Quantum: local (MicroMoth) vs. remote (Atlas) — pick by TIMING, not preference
+
+These are NOT interchangeable. They exist for opposite purposes:
+
+- MicroMoth (LOCAL, in-browser): import { MicroMoth } from "@/lib/micromoth".
+  A synchronous statevector simulator with 0ms latency, no key, no network.
+  USE IT FOR real-time mechanics: per-frame logic, button-press reactions,
+  small 1-6 qubit circuits that must resolve this frame. See Qubit Park.
+- Atlas (REMOTE, the Moth platform): an ASYNCHRONOUS job pipeline. You POST a
+  job and POLL for the result, which can take seconds to minutes (real QPUs /
+  heavy simulators). USE IT FOR loading screens, level generation / prefetch,
+  procedural content (e.g. Quantum Blur heightmaps), or turn-based phases.
+  See quantum-caverns.ts, which submits a job during generation, not in-loop.
+
+HARD RULE: NEVER await an Atlas job in response to real-time input (movement,
+firing, a button press). That stalls the game for seconds. If a mechanic needs
+quantum results every frame, use MicroMoth. If it needs Atlas, move the call to
+a loading / transition / background-prefetch phase and read the cached result
+during gameplay. Treat Atlas as a background job pipeline, not a drop-in for
+MicroMoth.simulate().
 
 ## Moth / Atlas platform API
 
