@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GameStage } from "@/components/game-stage"
@@ -13,7 +13,11 @@ type Via = "moth" | "pending" | "needs-key" | "error"
 export default function QuantumCavernsPage() {
   const router = useRouter()
   const [key, setKey] = useApiKey()
+  const [draft, setDraft] = useState(key)
   const [via, setVia] = useState<Via>("pending")
+
+  // Keep the draft in sync if the key changes elsewhere (e.g. the menu dialog).
+  useEffect(() => setDraft(key), [key])
 
   const onStatus = useCallback((v: Via) => setVia(v), [])
   // The game reads the shared key live each frame, so setting it (here or from
@@ -129,21 +133,46 @@ export default function QuantumCavernsPage() {
             cloud simulator. The key is shared with the menu, sent only to this app&apos;s server proxy, and held for
             this browser session — never stored to disk.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <form
+            className="mt-3 flex flex-wrap items-center gap-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              setKey(draft.trim())
+            }}
+          >
             <input
               id="moth-key"
               type="password"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
               placeholder="mq_..."
               autoComplete="off"
               spellCheck={false}
               className="min-w-[220px] flex-1 rounded-md border border-indigo-800/70 bg-neutral-900/70 px-3 py-2 font-mono text-sm text-indigo-100 outline-none placeholder:text-indigo-300/30 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40"
             />
+            <button
+              type="submit"
+              disabled={draft.trim() === key}
+              className="rounded-md border border-indigo-600 bg-indigo-600/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-indigo-50 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Save
+            </button>
+            {hasKey ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDraft("")
+                  setKey("")
+                }}
+                className="rounded-md border border-indigo-800/70 px-4 py-2 font-mono text-xs uppercase tracking-widest text-indigo-300 transition-colors hover:bg-indigo-900/40"
+              >
+                Clear
+              </button>
+            ) : null}
             <span className="font-mono text-[11px] text-indigo-300/50">
-              {hasKey ? "applies to the next maze (Space)" : "the maze generates as soon as you add a key"}
+              {hasKey ? "applies to the next maze (Space)" : "save a key to generate the maze"}
             </span>
-          </div>
+          </form>
         </div>
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-indigo-200/90">
