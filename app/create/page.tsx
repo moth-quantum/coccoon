@@ -191,8 +191,8 @@ export default function CreatePage() {
                 style={{ aspectRatio: `${32} / ${18}` }}
               >
                 <p className="max-w-xs px-6 font-mono text-xs leading-relaxed text-emerald-100/50">
-                  Press <span className="text-emerald-300">Run</span> to compile and start your cartridge. Click the
-                  canvas to give it focus, then use the arrow keys / WASD.
+                Press <span className="text-emerald-300">Run</span> to compile and start your cartridge. Click the
+                canvas to give it focus, then use the arrow keys / WASD, IJKL, or a gamepad.
                 </p>
               </div>
             )}

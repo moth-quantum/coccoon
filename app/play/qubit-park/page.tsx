@@ -61,9 +61,12 @@ export default function QubitParkPage() {
             <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Space</kbd> start
           </span>
           <span>
-            <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
-          </span>
-        </div>
+              <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
+            </span>
+            <span>
+              <kbd className="rounded bg-emerald-900/60 px-1.5 py-0.5">Gamepad</kbd> d-pad / stick + A
+            </span>
+          </div>
         <p className="mt-3 text-xs text-emerald-200/50">
           Click the grid first so it receives keyboard focus. Each scroll step runs ~576 single-qubit simulations.
         </p>

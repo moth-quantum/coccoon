@@ -476,6 +476,78 @@ export class Coccoon {
     this._pendingRelease.delete(code)
   }
 
+  // Codes currently held via gamepad, so releases can be synthesized when a
+  // button/stick returns to neutral without disturbing keyboard-held codes.
+  _padHeld = new Set<number>()
+
+  // Poll connected gamepads once per frame and translate them into the same
+  // codes the keyboard produces: d-pad + left stick -> 0..3, face buttons ->
+  // 4 (A/bottom = start-equivalent, matches Space) and 5..8 (the four buttons),
+  // Start/Back -> Escape. Standard-mapping layout (Xbox/PlayStation/etc).
+  private _pollGamepad(): void {
+    if (typeof navigator === "undefined" || !navigator.getGamepads) return
+    const pads = navigator.getGamepads()
+    let pad: Gamepad | null = null
+    for (const p of pads) {
+      if (p && p.connected) {
+        pad = p
+        break
+      }
+    }
+    const want = new Set<number>()
+    if (pad) {
+      const pressed = (i: number) => !!pad!.buttons[i]?.pressed
+      const axis = (i: number) => pad!.axes[i] ?? 0
+      const DEAD = 0.5
+      // D-pad (standard buttons 12-15) + left stick.
+      if (pressed(12) || axis(1) < -DEAD) want.add(0) // up
+      if (pressed(15) || axis(0) > DEAD) want.add(1) // right
+      if (pressed(13) || axis(1) > DEAD) want.add(2) // down
+      if (pressed(14) || axis(0) < -DEAD) want.add(3) // left
+      // Face buttons: A(0) bottom, B(1) right, X(2) left, Y(3) top.
+      if (pressed(0)) {
+        want.add(4) // A -> Space / start-equivalent
+        want.add(6) // A also mirrors the "J" primary action button
+      }
+      if (pressed(2)) want.add(5) // X -> I
+      if (pressed(1)) want.add(7) // B -> K
+      if (pressed(3)) want.add(8) // Y -> L
+      // Start(9) / Back(8) -> Escape.
+      if (pressed(9) || pressed(8)) {
+        if (this.onEscape && !this._padEscapeLatch) {
+          this._padEscapeLatch = true
+          this.onEscape()
+        }
+      } else {
+        this._padEscapeLatch = false
+      }
+      // Any pad activity is a user gesture — unblock suspended audio.
+      if (want.size > 0 && this._audioCtx && this._audioCtx.state === "suspended") void this._audioCtx.resume()
+    }
+    // Press newly-active codes.
+    for (const code of want) {
+      if (!this._padHeld.has(code)) {
+        this._padHeld.add(code)
+        this._pendingRelease.delete(code)
+        if (!this._inputState.key_presses.includes(code)) {
+          this._inputState.key_presses.push(code)
+          this._readSincePress.delete(code)
+        }
+      }
+    }
+    // Release codes the pad no longer holds (unless the keyboard holds them too
+    // — but keyboard/pad share codes, so mirror the keyup deferral logic).
+    for (const code of Array.from(this._padHeld)) {
+      if (!want.has(code)) {
+        this._padHeld.delete(code)
+        if (this._readSincePress.has(code)) this._removeKey(code)
+        else this._pendingRelease.add(code)
+      }
+    }
+  }
+
+  _padEscapeLatch = false
+
   constructor(canvas: HTMLCanvasElement) {
     this._canvas = canvas
     canvas.width = GRID_W * CELL
@@ -593,6 +665,8 @@ export class Coccoon {
       this._lastTime = now
       this._accum += delta
       const step = 1 / FPS
+      // Poll gamepads once per frame before stepping the game.
+      this._pollGamepad()
       // Fixed-timestep update to mirror Godot's capped max_fps.
       let ran = false
       while (this._accum >= step) {

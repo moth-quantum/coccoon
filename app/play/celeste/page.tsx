@@ -65,9 +65,12 @@ export default function CelestePage() {
             <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">J</kbd> dash
           </span>
           <span>
-            <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
-          </span>
-        </div>
+              <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
+            </span>
+            <span>
+              <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Gamepad</kbd> d-pad / stick + A jump, X dash
+            </span>
+          </div>
         <p className="mt-3 text-xs text-sky-200/50">
           Click the grid first so it receives keyboard focus. Reach the top of each room to climb the mountain.
         </p>

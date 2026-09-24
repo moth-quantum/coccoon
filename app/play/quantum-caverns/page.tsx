@@ -182,10 +182,13 @@ export default function QuantumCavernsPage() {
           <span>
             <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Space</kbd> new maze
           </span>
-          <span>
-            <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
-          </span>
-        </div>
+            <span>
+              <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Esc</kbd> back to menu
+            </span>
+            <span>
+              <kbd className="rounded bg-indigo-900/60 px-1.5 py-0.5">Gamepad</kbd> d-pad / stick + A
+            </span>
+          </div>
         <p className="text-xs text-indigo-200/50">
           Click the grid first so it receives keyboard focus. Run out of steps and the maze resets, keeping your last
           route as a dim trail. The next maze is prefetched while you play.
