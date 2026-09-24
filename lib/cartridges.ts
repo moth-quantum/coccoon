@@ -87,8 +87,13 @@ function ready(engine) {
 // engine.update() returns the current frame's input, including
 // key_presses: an array of the key codes held THIS frame.
 //
-// Key codes:  0=Up 1=Right 2=Down 3=Left 4=Space
-//             5=W 6=A 7=S 8=D
+// Key codes (the coccoon d-pad + four face buttons):
+//   0=Up  1=Right  2=Down  3=Left   ← arrows AND WASD both map here
+//   4=Start (Space)
+//   5=I   6=J      7=K     8=L       ← the four face buttons
+//
+// Because arrow keys and WASD are synonyms, you only ever read the
+// direction (0..3) — never which physical key produced it.
 //
 // Because process() runs every frame, a held key appears in
 // key_presses on many consecutive frames. To move one cell per
@@ -103,10 +108,10 @@ function process(delta, engine) {
   prev = keys.slice()
 
   // Remember: y is measured from the BOTTOM, so "Up" increases y.
-  if (just.includes(0) || just.includes(5)) py = Math.min(GRID_H - 1, py + 1)  // Up / W
-  if (just.includes(2) || just.includes(7)) py = Math.max(0, py - 1)           // Down / S
-  if (just.includes(1) || just.includes(8)) px = Math.min(GRID_W - 1, px + 1)  // Right / D
-  if (just.includes(3) || just.includes(6)) px = Math.max(0, px - 1)           // Left / A
+  if (just.includes(0)) py = Math.min(GRID_H - 1, py + 1)  // Up    (arrow / W)
+  if (just.includes(2)) py = Math.max(0, py - 1)           // Down  (arrow / S)
+  if (just.includes(1)) px = Math.min(GRID_W - 1, px + 1)  // Right (arrow / D)
+  if (just.includes(3)) px = Math.max(0, px - 1)           // Left  (arrow / A)
 
   // Write the new position back onto the sprite. Assigning to
   // sprite.x / sprite.y moves it on the next render.
