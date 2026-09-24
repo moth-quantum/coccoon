@@ -63,16 +63,34 @@ type CartridgeRunnerProps = {
 function compileCartridge(code: string, sandboxConsole: Console): Game {
   let js: string
   try {
-    js = ts.transpileModule(code, {
+    const out = ts.transpileModule(code, {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,
         target: ts.ScriptTarget.ES2020,
         esModuleInterop: true,
       },
-      reportDiagnostics: false,
-    }).outputText
+      reportDiagnostics: true,
+    })
+
+    // transpileModule does not throw on syntax errors; it reports them as
+    // diagnostics. Surface those (with line/column) so the editor can show
+    // exactly what is wrong instead of running broken output.
+    const diagnostics = out.diagnostics ?? []
+    if (diagnostics.length > 0) {
+      const messages = diagnostics.map((d) => {
+        const text = ts.flattenDiagnosticMessageText(d.messageText, "\n")
+        if (d.file && d.start !== undefined) {
+          const { line, character } = d.file.getLineAndCharacterOfPosition(d.start)
+          return `Line ${line + 1}:${character + 1} — ${text}`
+        }
+        return text
+      })
+      throw new Error("Syntax error:\n" + messages.join("\n"))
+    }
+
+    js = out.outputText
   } catch (err) {
-    throw new Error("Could not compile cartridge: " + errText(err))
+    throw new Error(errText(err))
   }
 
   const requireShim = (id: string): Record<string, unknown> => {

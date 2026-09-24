@@ -145,7 +145,7 @@ export class Cartridge implements Game {
 export const CARTRIDGES: Cartridge[] = [
   {
     id: "cartridge",
-    name: "Cartridge",
+    name: "example_cartridge",
     blurb: "A guided tour of the engine: imports, a Game class, images, sprites, the grid, text, and input.",
     code: CARTRIDGE,
   },

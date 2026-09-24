@@ -20,7 +20,7 @@ export default function CreatePage() {
 
   const handleDownload = useCallback(() => {
     const cart = CARTRIDGES.find((c) => c.id === activeId)
-    const base = (cart?.name ?? "cartridge").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    const base = (cart?.name ?? "cartridge").toLowerCase().replace(/[^a-z0-9_]+/g, "-").replace(/^-+|-+$/g, "")
     const blob = new Blob([code], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
