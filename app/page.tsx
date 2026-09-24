@@ -102,7 +102,7 @@ export default function MenuPage() {
               <div className="flex flex-col gap-2">
                 <h3 className="font-mono text-base font-semibold text-emerald-200">Code your own cartridge</h3>
                 <p className="max-w-2xl text-pretty text-sm leading-relaxed text-emerald-100/70">
-                  A fantasy-console-style editor. Write JavaScript against the same engine the built-in games use —
+                  A fantasy-console-style editor. Write JavaScript with the same engine the built-in games use —
                   sprites, text, per-frame input, and the <span className="font-mono text-emerald-300">MicroMoth</span>{" "}
                   quantum simulator — and run it live in the browser.
                 </p>
