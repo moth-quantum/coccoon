@@ -42,8 +42,15 @@ const KEY_MAP: Record<string, number> = {
   Escape: -1,
 }
 
-type ImageEntry = string | Color
-type LoadedImage = { kind: "image"; el: HTMLImageElement } | { kind: "color"; css: string }
+// A tile carved out of a larger spritesheet: one shared image element, drawn
+// from a source rectangle. Lets a game register hundreds of 8x8 sprites that
+// all live in a single PNG instead of hundreds of separate files.
+export type SheetTile = { src: string; sx: number; sy: number; sw: number; sh: number }
+type ImageEntry = string | Color | SheetTile
+type LoadedImage =
+  | { kind: "image"; el: HTMLImageElement }
+  | { kind: "color"; css: string }
+  | { kind: "tile"; el: HTMLImageElement; sx: number; sy: number; sw: number; sh: number }
 
 export interface InputState {
   key_presses: number[]
@@ -133,6 +140,9 @@ export class Sprite {
     if (img.kind === "color") {
       ctx.fillStyle = img.css
       ctx.fillRect(-s / 2, -s / 2, s, s)
+    } else if (img.kind === "tile") {
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(img.el, img.sx, img.sy, img.sw, img.sh, -s / 2, -s / 2, s, s)
     } else {
       ctx.imageSmoothingEnabled = false
       ctx.drawImage(img.el, -s / 2, -s / 2, s, s)
@@ -312,12 +322,32 @@ export class Coccoon {
   }
 
   _loadImages(entries: ImageEntry[]): void {
+    // Cache one HTMLImageElement per unique src so a spritesheet shared by many
+    // tile entries is fetched and decoded only once.
+    const cache = new Map<string, HTMLImageElement>()
+    const load = (src: string): HTMLImageElement => {
+      let el = cache.get(src)
+      if (!el) {
+        el = new Image()
+        el.crossOrigin = "anonymous"
+        el.src = src
+        cache.set(src, el)
+      }
+      return el
+    }
     this._images = entries.map((entry) => {
       if (typeof entry === "string") {
-        const el = new Image()
-        el.crossOrigin = "anonymous"
-        el.src = entry
-        return { kind: "image", el } as LoadedImage
+        return { kind: "image", el: load(entry) } as LoadedImage
+      }
+      if ("src" in entry) {
+        return {
+          kind: "tile",
+          el: load(entry.src),
+          sx: entry.sx,
+          sy: entry.sy,
+          sw: entry.sw,
+          sh: entry.sh,
+        } as LoadedImage
       }
       return { kind: "color", css: toCss(entry) } as LoadedImage
     })

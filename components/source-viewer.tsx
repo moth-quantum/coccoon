@@ -23,7 +23,7 @@ export type SourceFile = {
   note?: string
 }
 
-type Accent = "emerald" | "indigo"
+type Accent = "emerald" | "indigo" | "sky"
 
 const ACCENTS: Record<
   Accent,
@@ -43,6 +43,13 @@ const ACCENTS: Record<
     tabIdle: "text-indigo-300/70 hover:text-indigo-100 hover:bg-indigo-900/30",
     ring: "focus-visible:ring-indigo-500/50",
     dot: "text-indigo-400",
+  },
+  sky: {
+    trigger: "border-sky-800/70 text-sky-300 hover:bg-sky-900/40",
+    tabActive: "bg-sky-900/60 text-sky-100",
+    tabIdle: "text-sky-300/70 hover:text-sky-100 hover:bg-sky-900/30",
+    ring: "focus-visible:ring-sky-500/50",
+    dot: "text-sky-400",
   },
 }
 

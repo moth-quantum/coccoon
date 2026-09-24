@@ -9,7 +9,7 @@ type GameCard = {
   note?: string
 }
 
-const GAMES: GameCard[] = [
+const DEMO_GAMES: GameCard[] = [
   {
     title: "Qubit Park",
     blurb:
@@ -18,19 +18,22 @@ const GAMES: GameCard[] = [
     status: "Playable",
   },
   {
-    title: "Celeste (Quantum Remix)",
-    blurb:
-      "A full port of the Pico-8 original by Matt Thorson & Noel Berry, with sprites modified via Moth's TESSA tool.",
-    status: "Not ported",
-    note: "The original is ~47k lines of GDScript — out of scope for this web port.",
-  },
-  {
     title: "Quantum Caverns",
     blurb:
       "A quantum maze game: navigate from start to exit within a step limit. Maze generation is quantum blur, run entirely on the Moth platform.",
     href: "/play/quantum-caverns",
     status: "Playable",
     note: "Requires an Atlas API key. The source doubles as a tutorial for calling the Moth platform from a coccoon game.",
+  },
+]
+
+const FEATURED_GAMES: GameCard[] = [
+  {
+    title: "Celeste (Quantum Remix)",
+    blurb:
+      "A full port of Celeste Classic by Maddy Thorson & Noel Berry. The physics and levels are faithful to the original; each solid tile flickers between three quantum sprite variants made with Moth's TESSA tool.",
+    href: "/play/celeste",
+    status: "Playable",
   },
 ]
 
@@ -61,12 +64,35 @@ export default function MenuPage() {
           <ApiKeyPanel />
         </header>
 
-        <section aria-labelledby="games-heading" className="flex flex-col gap-6">
-          <h2 id="games-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
-            Games
-          </h2>
+        <section aria-labelledby="demo-heading" className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 id="demo-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
+              Demo games
+            </h2>
+            <p className="text-sm text-emerald-100/60">
+              Small, self-contained examples that each demonstrate one way to bring quantum into a game.
+            </p>
+          </div>
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {GAMES.map((game) => (
+            {DEMO_GAMES.map((game) => (
+              <li key={game.title}>
+                <GameTile game={game} />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="featured-heading" className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 id="featured-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
+              Featured games
+            </h2>
+            <p className="text-sm text-emerald-100/60">
+              Full games ported to coccoon, given a quantum twist.
+            </p>
+          </div>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURED_GAMES.map((game) => (
               <li key={game.title}>
                 <GameTile game={game} />
               </li>
