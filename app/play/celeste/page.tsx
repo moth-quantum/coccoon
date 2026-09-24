@@ -54,6 +54,18 @@ export default function CelestePage() {
           sprite variants generated with Moth&apos;s TESSA tool and flickers between them, like a qubit collapsing
           between measured states.
         </p>
+        <p className="mt-3 text-sm leading-relaxed text-sky-200/80">
+          Based on the{" "}
+          <a
+            href="https://github.com/NoelFB/Celeste"
+            target="_blank"
+            rel="noreferrer"
+            className="text-sky-400 underline decoration-sky-400/40 underline-offset-4 transition-colors hover:text-sky-300"
+          >
+            original Celeste source
+          </a>{" "}
+          by Maddy Thorson &amp; Noel Berry.
+        </p>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-sky-300/90">
           <span>
             <kbd className="rounded bg-sky-900/60 px-1.5 py-0.5">Arrows / WASD</kbd> move
