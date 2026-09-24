@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GameStage } from "@/components/game-stage"
+import { SourceViewer } from "@/components/source-viewer"
 import { QuantumCaverns } from "@/lib/games/quantum-caverns"
 
 type Via = "moth" | "local" | "pending"
@@ -31,7 +32,32 @@ export default function QuantumCavernsPage() {
           {"< Menu"}
         </Link>
         <h1 className="font-mono text-sm uppercase tracking-[0.2em] text-indigo-300 sm:text-base">Quantum Caverns</h1>
-        <span className="w-[68px]" aria-hidden />
+        <SourceViewer
+          title="Quantum Caverns"
+          accent="indigo"
+          files={[
+            {
+              key: "games/quantum-caverns",
+              label: "quantum-caverns.ts",
+              note: "The game: quantum-blur maze generation with a Moth-platform-or-local dispatcher.",
+            },
+            {
+              key: "lib/quantumblur",
+              label: "quantumblur.ts",
+              note: "The local QuantumBlur fallback — the same blur the Moth engine runs, in-browser.",
+            },
+            {
+              key: "api/moth-blur",
+              label: "moth-blur route",
+              note: "The server proxy that calls the Moth platform's blur-core-v1 async job API.",
+            },
+            {
+              key: "lib/coccoon",
+              label: "coccoon.ts",
+              note: "The coccoon engine: the 32x18 grid, sprites, text, and per-frame input.",
+            },
+          ]}
+        />
       </header>
 
       <GameStage createGame={createGame} onExit={exit} />

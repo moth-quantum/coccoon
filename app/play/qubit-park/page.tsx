@@ -4,6 +4,7 @@ import { useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GameStage } from "@/components/game-stage"
+import { SourceViewer } from "@/components/source-viewer"
 import { QubitPark } from "@/lib/games/qubit-park"
 
 export default function QubitParkPage() {
@@ -21,7 +22,27 @@ export default function QubitParkPage() {
           {"< Menu"}
         </Link>
         <h1 className="font-mono text-sm uppercase tracking-[0.2em] text-emerald-400 sm:text-base">Qubit Park</h1>
-        <span className="w-[68px]" aria-hidden />
+        <SourceViewer
+          title="Qubit Park"
+          accent="emerald"
+          files={[
+            {
+              key: "games/qubit-park",
+              label: "qubit-park.ts",
+              note: "The game itself: single-qubit terrain generation and the title/scroll loop.",
+            },
+            {
+              key: "lib/micromoth",
+              label: "micromoth.ts",
+              note: "MicroMoth — the tiny statevector simulator every tile is computed with.",
+            },
+            {
+              key: "lib/coccoon",
+              label: "coccoon.ts",
+              note: "The coccoon engine: the 32x18 grid, sprites, text, and per-frame input.",
+            },
+          ]}
+        />
       </header>
 
       <GameStage createGame={createGame} onExit={exit} />
