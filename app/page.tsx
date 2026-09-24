@@ -116,19 +116,12 @@ export default function MenuPage() {
           <h2 id="about-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
             About this port
           </h2>
-          <div className="grid gap-6 text-sm leading-relaxed text-emerald-100/75 sm:grid-cols-2">
+          <div className="text-sm leading-relaxed text-emerald-100/75">
             <p>
-              The original coccoon is a Godot 4 project written in GDScript. This is a faithful web reimplementation:
-              the engine primitives (<span className="font-mono">Sprite</span>,{" "}
-              <span className="font-mono">Text</span>, <span className="font-mono">ImageList</span>,{" "}
-              <span className="font-mono">update()</span>) render to an HTML5 canvas instead of Godot scene nodes.
-            </p>
-            <p>
-              MicroMoth is ported line-for-line, keeping the same statevector representation and{" "}
-              <span className="font-mono">simulate()</span> output modes (
-              <span className="font-mono">statevector</span>, <span className="font-mono">probabilities_dict</span>,{" "}
-              <span className="font-mono">counts</span>, <span className="font-mono">memory</span>). Game code ports
-              across almost verbatim.
+              A web reimplementation of coccoon, originally a Godot 4 project. The engine primitives (
+              <span className="font-mono">Sprite</span>, <span className="font-mono">Text</span>,{" "}
+              <span className="font-mono">ImageList</span>, <span className="font-mono">update()</span>) render to an
+              HTML5 canvas, so game code ports across almost verbatim.
             </p>
           </div>
           <a
