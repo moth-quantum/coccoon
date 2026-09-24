@@ -38,7 +38,7 @@ export default function MenuPage() {
     <main className="min-h-screen bg-neutral-950 text-emerald-50">
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-16">
         <header className="flex flex-col gap-4">
-          <p className="font-mono text-xs uppercase tracking-[0.35em] text-emerald-500">Moth Quantum · web port</p>
+          <p className="font-mono text-xs uppercase tracking-[0.35em] text-emerald-500">Retro quantum game engine by James Wootton</p>
           <h1 className="text-balance font-mono text-4xl font-bold tracking-tight text-emerald-300 sm:text-6xl">
             coccoon
           </h1>
