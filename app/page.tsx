@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ApiKeyPanel } from "@/components/api-key-panel"
 
 type GameCard = {
   title: string
@@ -26,10 +27,10 @@ const GAMES: GameCard[] = [
   {
     title: "Quantum Caverns",
     blurb:
-      "A quantum maze game: navigate from start to exit within a step limit. Maze generation is quantum blur, run on the Moth platform (with a local fallback).",
+      "A quantum maze game: navigate from start to exit within a step limit. Maze generation is quantum blur, run entirely on the Moth platform.",
     href: "/play/quantum-caverns",
     status: "Playable",
-    note: "The source doubles as a tutorial for calling the Moth platform from a coccoon game.",
+    note: "Requires an Atlas API key. The source doubles as a tutorial for calling the Moth platform from a coccoon game.",
   },
 ]
 
@@ -52,11 +53,12 @@ export default function MenuPage() {
             >
               Atlas, the Moth platform
             </a>
-            . The engine renders to a virtual <span className="font-mono text-emerald-300">32×18</span> cell grid; quantum
-            work runs on Atlas when a key is present, and falls back to{" "}
-            <span className="font-mono text-emerald-300">MicroMoth</span>, a lightweight statevector simulator running
-            entirely in the browser, when it isn&apos;t.
+            . The engine renders to a virtual <span className="font-mono text-emerald-300">32×18</span> cell grid.
+            Simple quantum effects run in the browser on{" "}
+            <span className="font-mono text-emerald-300">MicroMoth</span>, a lightweight statevector simulator; heavier
+            work — like Quantum Caverns&apos; maze generation — runs on Atlas using an API key you provide below.
           </p>
+          <ApiKeyPanel />
         </header>
 
         <section aria-labelledby="games-heading" className="flex flex-col gap-6">

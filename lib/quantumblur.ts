@@ -7,7 +7,9 @@
 // single-qubit rotations "blur" it across the Bloch sphere, and the resulting
 // probability distribution is decoded back into a height map. This is the same
 // calculation the Moth platform's blur-core-v1 engine performs on real quantum
-// hardware or a cloud simulator; it runs here as the local fallback.
+// hardware or a cloud simulator. It is kept here as a readable reference
+// implementation of that algorithm — Quantum Caverns always runs the blur on
+// the platform, and only imports posKey/HeightMap from this file.
 //
 // Heights are plain objects keyed by "x,y" (mirroring the original's
 // Dictionary keyed by Vector2i).

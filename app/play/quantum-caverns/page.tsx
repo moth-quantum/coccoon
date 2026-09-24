@@ -1,26 +1,27 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GameStage } from "@/components/game-stage"
 import { SourceViewer } from "@/components/source-viewer"
 import { QuantumCaverns } from "@/lib/games/quantum-caverns"
+import { getApiKey, useApiKey } from "@/lib/api-key"
 
-type Via = "moth" | "local" | "pending"
+type Via = "moth" | "pending" | "needs-key" | "error"
 
 export default function QuantumCavernsPage() {
   const router = useRouter()
-  const keyRef = useRef("")
-  const [keyInput, setKeyInput] = useState("")
+  const [key, setKey] = useApiKey()
   const [via, setVia] = useState<Via>("pending")
 
   const onStatus = useCallback((v: Via) => setVia(v), [])
-  const createGame = useCallback(
-    () => new QuantumCaverns(() => keyRef.current, onStatus),
-    [onStatus],
-  )
+  // The game reads the shared key live each frame, so setting it (here or from
+  // the menu) makes a maze generate without recreating the game.
+  const createGame = useCallback(() => new QuantumCaverns(() => getApiKey(), onStatus), [onStatus])
   const exit = useCallback(() => router.push("/"), [router])
+
+  const hasKey = key.length > 0
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 bg-neutral-950 px-4 py-8 text-indigo-50">
@@ -39,17 +40,17 @@ export default function QuantumCavernsPage() {
             {
               key: "games/quantum-caverns",
               label: "quantum-caverns.ts",
-              note: "The game: quantum-blur maze generation with a Moth-platform-or-local dispatcher.",
-            },
-            {
-              key: "lib/quantumblur",
-              label: "quantumblur.ts",
-              note: "The local QuantumBlur fallback — the same blur the Moth engine runs, in-browser.",
+              note: "The game: quantum-blur maze generation, run entirely on the Moth platform.",
             },
             {
               key: "api/moth-blur",
               label: "moth-blur route",
               note: "The server proxy that calls the Moth platform's blur-core-v1 async job API.",
+            },
+            {
+              key: "lib/quantumblur",
+              label: "quantumblur.ts",
+              note: "Reference TS implementation of the same blur the platform runs.",
             },
             {
               key: "lib/coccoon",
@@ -68,22 +69,32 @@ export default function QuantumCavernsPage() {
             className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-wider ${
               via === "moth"
                 ? "bg-indigo-500/20 text-indigo-200"
-                : via === "local"
+                : via === "needs-key"
                   ? "bg-amber-500/15 text-amber-200"
-                  : "bg-neutral-700/40 text-neutral-300"
+                  : via === "error"
+                    ? "bg-red-500/15 text-red-200"
+                    : "bg-neutral-700/40 text-neutral-300"
             }`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                via === "moth" ? "bg-indigo-300" : via === "local" ? "bg-amber-300" : "bg-neutral-400"
+                via === "moth"
+                  ? "bg-indigo-300"
+                  : via === "needs-key"
+                    ? "bg-amber-300"
+                    : via === "error"
+                      ? "bg-red-300"
+                      : "bg-neutral-400"
               }`}
               aria-hidden
             />
             {via === "moth"
               ? "Blur computed on the Moth platform"
-              : via === "local"
-                ? "Blur computed locally (QuantumBlur fallback)"
-                : "Generating first maze…"}
+              : via === "needs-key"
+                ? "Add an Atlas API key to play"
+                : via === "error"
+                  ? "Couldn't reach the Moth platform"
+                  : "Contacting the Moth platform…"}
           </span>
         </div>
 
@@ -92,12 +103,17 @@ export default function QuantumCavernsPage() {
           <span className="font-mono">{"2^10"}</span>-amplitude statevector, blurred by an{" "}
           <span className="font-mono">Rx(π/8)</span> rotation on every qubit, then decoded. Cells above{" "}
           <span className="font-mono">0.5</span> become walls, the rest paths. Start and exit are the two farthest
-          points of the largest connected region.
+          points of the largest connected region. This game runs that blur <strong>entirely on the Moth platform</strong>
+          {" "}— it needs an Atlas API key.
         </p>
 
-        <div className="rounded-lg border border-indigo-900/60 bg-indigo-950/30 p-4">
+        <div
+          className={`rounded-lg border p-4 ${
+            hasKey ? "border-indigo-900/60 bg-indigo-950/30" : "border-amber-700/60 bg-amber-950/20"
+          }`}
+        >
           <label htmlFor="moth-key" className="font-mono text-xs uppercase tracking-widest text-indigo-300">
-            Atlas API key (optional)
+            Atlas API key {hasKey ? "" : "(required)"}
           </label>
           <p className="mt-1 text-xs leading-relaxed text-indigo-200/60">
             This is the tutorial&apos;s whole point: coccoon games run their quantum work on{" "}
@@ -109,26 +125,23 @@ export default function QuantumCavernsPage() {
             >
               Atlas, the Moth platform
             </a>
-            . Paste a <span className="font-mono">blur-core-v1</span> key to run generation on real quantum hardware or
-            a cloud simulator. Without one, the identical calculation runs locally. The key is sent only to this
-            app&apos;s server proxy, never stored.
+            . Paste a <span className="font-mono">blur-core-v1</span> key to generate mazes on real quantum hardware or a
+            cloud simulator. The key is shared with the menu, sent only to this app&apos;s server proxy, and held for
+            this browser session — never stored to disk.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
               id="moth-key"
               type="password"
-              value={keyInput}
-              onChange={(e) => {
-                setKeyInput(e.target.value)
-                keyRef.current = e.target.value.trim()
-              }}
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
               placeholder="mq_..."
               autoComplete="off"
               spellCheck={false}
               className="min-w-[220px] flex-1 rounded-md border border-indigo-800/70 bg-neutral-900/70 px-3 py-2 font-mono text-sm text-indigo-100 outline-none placeholder:text-indigo-300/30 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40"
             />
             <span className="font-mono text-[11px] text-indigo-300/50">
-              applies to the next maze (Space)
+              {hasKey ? "applies to the next maze (Space)" : "the maze generates as soon as you add a key"}
             </span>
           </div>
         </div>

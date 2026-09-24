@@ -7,16 +7,18 @@
 // height map is scattered with random peaks, then blurred by rotating each
 // qubit on the Bloch sphere. Cells above 0.5 become walls; the rest paths.
 //
-// The blur is computed by the Moth platform's blur-core-v1 engine when an API
-// key is available (see the "── API" methods), falling back to the local
-// QuantumBlur simulator otherwise. Callers of _genHeight never know which ran.
+// The blur is computed by the Moth platform's blur-core-v1 engine (see the
+// "── API" methods). This game has NO local fallback: it requires an Atlas API
+// key and generates every maze on the platform. Without a key it stays on the
+// title screen and asks for one (auto-generating as soon as a key is set); if
+// the platform is unreachable it shows an error and retries on Space.
 //
 // The original uses fire-and-forget GDScript coroutines guarded by flags; this
 // port uses async methods guarded by the same flags, checked each frame in
 // process(). JS is single-threaded, so the flags stay consistent.
 
 import { Coccoon, ImageList, Sprite, Text, color, Colors, type Game } from "@/lib/coccoon"
-import { QuantumBlur, posKey, type HeightMap } from "@/lib/quantumblur"
+import { posKey, type HeightMap } from "@/lib/quantumblur"
 
 const VIEW_W = 32
 const VIEW_H = 17
@@ -29,6 +31,9 @@ const IMG_PLAYER = 3
 const IMG_OUTSIDE = 4
 const IMG_PATH_DIM = 5
 
+type Via = "moth" | "pending" | "needs-key" | "error"
+type BlockReason = "needs-key" | "error" | null
+
 type Vec = { x: number; y: number }
 const DIRS: Vec[] = [
   { x: 1, y: 0 },
@@ -40,7 +45,7 @@ const DIRS: Vec[] = [
 export class QuantumCaverns implements Game {
   private _engine!: Coccoon
   private _getApiKey: () => string
-  private _onStatus?: (via: "moth" | "local" | "pending") => void
+  private _onStatus?: (via: Via) => void
 
   private _tiles: Record<string, Sprite> = {}
   private _statusText!: Text
@@ -59,13 +64,14 @@ export class QuantumCaverns implements Game {
   private _prevKeys: number[] = []
 
   private _generating = false
+  private _blockReason: BlockReason = null
+  private _started = false
   private _animTick = 0
   private _prefetching = false
   private _nextMazeHeight: HeightMap = {}
   private _nextMazeReady = false
-  private _waitingForNext = false
 
-  constructor(getApiKey: () => string, onStatus?: (via: "moth" | "local" | "pending") => void) {
+  constructor(getApiKey: () => string, onStatus?: (via: Via) => void) {
     this._getApiKey = getApiKey
     this._onStatus = onStatus
   }
@@ -90,7 +96,7 @@ export class QuantumCaverns implements Game {
 
     this._statusText = new Text(
       engine,
-      "Generating quantum maze",
+      "Contacting the Moth platform",
       VIEW_W,
       2,
       0,
@@ -136,15 +142,19 @@ export class QuantumCaverns implements Game {
 
   private async _startGeneration(): Promise<void> {
     this._generating = true
+    this._blockReason = null
     this._animTick = 0
-    this._statusText.text = "Generating quantum maze"
-    const height = await this._genHeight(this._getApiKey())
-    this._buildMaze(height)
+    this._statusText.text = "Contacting the Moth platform"
+    const height = await this._generateHeight(true)
     this._generating = false
-    for (const t of [this._titleText, this._loadingText]) {
-      t.set_font_color(color(0, 0, 0, 0))
-      t.set_background_color(color(0, 0, 0, 0))
+    if (!height) {
+      // No key, or the platform call failed. Stay on the title; process() will
+      // retry (auto once a key appears, or on Space for a platform error).
+      this._blockReason = this._getApiKey().length === 0 ? "needs-key" : "error"
+      return
     }
+    this._buildMaze(height)
+    this._hideTitle()
     this._resetLoop()
     void this._prefetchNext()
   }
@@ -152,18 +162,29 @@ export class QuantumCaverns implements Game {
   private async _prefetchNext(): Promise<void> {
     if (this._prefetching || this._nextMazeReady) return
     this._prefetching = true
-    this._nextMazeHeight = await this._genHeight(this._getApiKey())
-    this._nextMazeReady = true
+    // Silent: don't flip the status pill while the player is mid-maze.
+    const height = await this._generateHeight(false)
     this._prefetching = false
+    if (height) {
+      this._nextMazeHeight = height
+      this._nextMazeReady = true
+    }
   }
 
   private _applyNextMaze(): void {
     this._buildMaze(this._nextMazeHeight)
     this._nextMazeHeight = {}
     this._nextMazeReady = false
-    this._waitingForNext = false
     this._resetLoop()
     void this._prefetchNext()
+  }
+
+  private _hideTitle(): void {
+    for (const t of [this._titleText, this._loadingText]) {
+      t.set_font_color(color(0, 0, 0, 0))
+      t.set_background_color(color(0, 0, 0, 0))
+    }
+    this._started = true
   }
 
   // ── Title screen tiles ──────────────────────────────────────────────────────
@@ -208,19 +229,24 @@ export class QuantumCaverns implements Game {
 
   // ── Height generation ────────────────────────────────────────────────────────
   //
-  // Single entry point for both paths: try the Moth platform first when a key
-  // is set, fall back to the local QuantumBlur simulator otherwise.
+  // The only source of a maze is the Moth platform. Without a key we report
+  // "needs-key" and return null so the caller keeps the title up; on a platform
+  // error we report "error" and return null so the caller can retry.
 
-  private async _genHeight(key: string): Promise<HeightMap> {
-    if (key.length > 0) {
-      const h = await this._genHeightApi(key)
-      if (h && Object.keys(h).length > 0) {
-        this._onStatus?.("moth")
-        return h
-      }
+  private async _generateHeight(report: boolean): Promise<HeightMap | null> {
+    const key = this._getApiKey()
+    if (key.length === 0) {
+      if (report) this._onStatus?.("needs-key")
+      return null
     }
-    this._onStatus?.("local")
-    return this._genHeightLocal()
+    if (report) this._onStatus?.("pending")
+    const height = await this._genHeightApi(key)
+    if (height && Object.keys(height).length > 0) {
+      if (report) this._onStatus?.("moth")
+      return height
+    }
+    if (report) this._onStatus?.("error")
+    return null
   }
 
   private _makeInitialHeight(): HeightMap {
@@ -238,8 +264,7 @@ export class QuantumCaverns implements Game {
   //
   // The server route owns the async job model (submit -> poll -> download);
   // here we just hand it the initial grid and the caller's key, then decode the
-  // blurred grid it returns. Any failure resolves to null so _genHeight falls
-  // through to the local path.
+  // blurred grid it returns. Any failure resolves to null.
 
   private async _genHeightApi(key: string): Promise<HeightMap | null> {
     const height = this._makeInitialHeight()
@@ -287,18 +312,6 @@ export class QuantumCaverns implements Game {
       for (let x = 0; x < cols; x++) height[posKey(x, y)] = Number(row[x])
     }
     return height
-  }
-
-  // ── Local fallback ───────────────────────────────────────────────────────────
-  //
-  // Same quantum blur, run in-browser: encode the height map into a circuit,
-  // apply one Rx(pi/8) per qubit (strength 0.25), decode the result.
-
-  private _genHeightLocal(): HeightMap {
-    const height = this._makeInitialHeight()
-    const qc = QuantumBlur.height2circuit(height, L)
-    for (let j = 0; j < qc.numQubits; j++) qc.rx(Math.PI * 0.125, j)
-    return QuantumBlur.circuit2height(qc, L, L, true)
   }
 
   // ── Maze construction from height map ────────────────────────────────────────
@@ -429,40 +442,64 @@ export class QuantumCaverns implements Game {
     }
   }
 
+  // Read this frame's input and return the keys that are newly pressed since
+  // the last frame (the "just pressed" diff). Also advances _prevKeys.
+  private _readJustPressed(engine: Coccoon): number[] {
+    const keys = engine.update().key_presses
+    const justPressed: number[] = []
+    for (const k of keys) if (!this._prevKeys.includes(k)) justPressed.push(k)
+    this._prevKeys = keys.slice()
+    return justPressed
+  }
+
   process(_delta: number, engine: Coccoon): void {
     if (this._generating) {
       this._animTick += 1
       if (this._animTick % 10 === 0) {
-        this._statusText.text = "Generating quantum maze" + ".".repeat(Math.floor(this._animTick / 10) % 4)
+        this._statusText.text = "Contacting the Moth platform" + ".".repeat(Math.floor(this._animTick / 10) % 4)
       }
       return
     }
 
-    if (this._waitingForNext) {
-      this._animTick += 1
-      if (this._animTick % 10 === 0) {
-        this._statusText.text = "Generating quantum maze" + ".".repeat(Math.floor(this._animTick / 10) % 4)
+    if (this._blockReason) {
+      const justPressed = this._readJustPressed(engine)
+      if (this._blockReason === "needs-key") {
+        const msg = "Add an Atlas API key to generate a maze"
+        this._statusText.text = msg
+        if (!this._started) {
+          this._loadingText.text =
+            "This game generates its maze on the Moth platform.\n\n" +
+            "Add an Atlas API key — from the menu, or on this page —\nto play.\n\n" +
+            "Esc to menu"
+        }
+        // Auto-retry the moment a key becomes available.
+        if (this._getApiKey().length > 0) {
+          this._blockReason = null
+          void this._startGeneration()
+        }
+        return
       }
-      if (this._nextMazeReady) this._applyNextMaze()
+      // platform error
+      const msg = "Couldn't reach the Moth platform — Space to retry"
+      this._statusText.text = msg
+      if (!this._started) {
+        this._loadingText.text = msg + "\n\nCheck your key, then press Space.\n\nEsc to menu"
+      }
+      if (justPressed.includes(4)) {
+        this._blockReason = null
+        void this._startGeneration()
+      }
       return
     }
 
-    const inp = engine.update()
-    const keys = inp.key_presses
-    const justPressed: number[] = []
-    for (const k of keys) if (!this._prevKeys.includes(k)) justPressed.push(k)
-    this._prevKeys = keys.slice()
+    const justPressed = this._readJustPressed(engine)
 
     if (this._success) {
       if (justPressed.includes(4)) {
         this._lastpath = []
-        if (this._nextMazeReady) {
-          this._applyNextMaze()
-        } else {
-          this._waitingForNext = true
-          this._animTick = 0
-          this._statusText.text = "Generating quantum maze"
-        }
+        // Instant if the next maze was prefetched; otherwise generate one now.
+        if (this._nextMazeReady) this._applyNextMaze()
+        else void this._startGeneration()
       }
       return
     }

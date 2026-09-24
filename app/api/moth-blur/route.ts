@@ -11,9 +11,11 @@
 //   3. result inline, or download outputs[0].url  -> the blurred grid
 //
 // The Bearer token is either supplied per-request by the caller (entered in
-// the game UI, mirroring coccoon's engine-level API key) or read from the
-// MOTH_API_KEY environment variable. When neither is present, or the platform
-// is unreachable, the client falls back to the local QuantumBlur simulator.
+// the menu or game UI, mirroring coccoon's engine-level API key) or read from
+// the MOTH_API_KEY environment variable. Quantum Caverns has no local
+// fallback: when no key is present this route returns 401 and the game asks
+// the player for one; when the platform errors it returns 5xx and the game
+// offers a retry.
 
 const API_BASE = "https://api.mothquantum.com"
 const POLL_INTERVAL_MS = 500
@@ -36,8 +38,8 @@ export async function POST(request: Request) {
 
   const key = (payload.key && payload.key.length > 0 ? payload.key : process.env.MOTH_API_KEY) ?? ""
   if (!key) {
-    // No credential available — tell the client to use the local fallback.
-    return Response.json({ error: "no API key; use local fallback" }, { status: 401 })
+    // No credential available — the game shows its "add a key" prompt.
+    return Response.json({ error: "no API key" }, { status: 401 })
   }
 
   if (!Array.isArray(payload.values)) {
