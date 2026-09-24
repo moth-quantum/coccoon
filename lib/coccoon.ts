@@ -259,12 +259,173 @@ export class ImageList {
   }
 }
 
+// ---- Audio ---------------------------------------------------------------
+// Mirrors the SoundList + Sound model of qisge (the engine coccoon was ported
+// from). SoundList registers audio clips by URL, exactly like ImageList
+// registers images. A Sound is a playback channel: set its playmode to start
+// or stop it, and volume/pitch/note update live while it plays. Web Audio
+// backs it here where Godot used AudioStreamPlayer nodes.
+
+// playmode values, matching qisge's Sound.playmode.
+export const STOP = 0
+export const PLAY = 1
+export const LOOP = 2
+
+type LoadedSound = {
+  url: string
+  buffer: AudioBuffer | null
+  // Channels that asked to play before this clip finished decoding.
+  pending: Set<Sound>
+}
+
+export class SoundList {
+  _entries: string[]
+  constructor(engine: Coccoon, entries: string[]) {
+    // A fresh SoundList silences whatever was playing, like ImageList clears
+    // the old sprites.
+    engine._stopAllChannels()
+    this._entries = entries
+    engine._loadSounds(entries)
+  }
+}
+
+export class Sound {
+  _engine: Coccoon
+  _soundId: number
+  _playmode: number
+  _volume: number
+  _pitch: number
+  _note: number
+  _source: AudioBufferSourceNode | null = null
+  _gain: GainNode | null = null
+
+  constructor(engine: Coccoon, soundId: number, playmode = PLAY, volume = 1, pitch = 1, note = 0) {
+    this._engine = engine
+    this._soundId = soundId
+    this._playmode = playmode
+    this._volume = volume
+    this._pitch = pitch
+    this._note = note
+    engine._channels.push(this)
+    if (playmode !== STOP) this._begin()
+  }
+
+  get playmode(): number {
+    return this._playmode
+  }
+  set playmode(v: number) {
+    if (v === this._playmode) return
+    this._playmode = v
+    if (v === STOP) this._stopSource()
+    else this._begin()
+  }
+
+  get volume(): number {
+    return this._volume
+  }
+  set volume(v: number) {
+    this._volume = v
+    const ctx = this._engine._audioCtx
+    if (this._gain && ctx) this._gain.gain.setValueAtTime(v, ctx.currentTime)
+  }
+
+  get pitch(): number {
+    return this._pitch
+  }
+  set pitch(v: number) {
+    this._pitch = v
+    this._applyRate()
+  }
+
+  get note(): number {
+    return this._note
+  }
+  set note(v: number) {
+    this._note = v
+    this._applyRate()
+  }
+
+  // note shifts pitch in equal-tempered semitones, on top of the pitch factor.
+  private _rate(): number {
+    return this._pitch * Math.pow(2, this._note / 12)
+  }
+
+  private _applyRate(): void {
+    const ctx = this._engine._audioCtx
+    if (this._source && ctx) this._source.playbackRate.setValueAtTime(this._rate(), ctx.currentTime)
+  }
+
+  private _begin(): void {
+    const eng = this._engine
+    const snd = eng._sounds[this._soundId]
+    if (!snd) return
+    eng._ensureAudio()
+    if (!snd.buffer) {
+      // Not decoded yet — start as soon as it is.
+      snd.pending.add(this)
+      return
+    }
+    this._playBuffer(snd.buffer)
+  }
+
+  // Called by the engine once a pending clip finishes decoding.
+  _playBuffer(buffer: AudioBuffer): void {
+    const eng = this._engine
+    const ctx = eng._audioCtx
+    if (!ctx || !eng._masterGain) return
+    this._stopSource()
+    const src = ctx.createBufferSource()
+    src.buffer = buffer
+    src.loop = this._playmode === LOOP
+    src.playbackRate.value = this._rate()
+    const gain = ctx.createGain()
+    gain.gain.value = this._volume
+    src.connect(gain)
+    gain.connect(eng._masterGain)
+    src.start()
+    this._source = src
+    this._gain = gain
+    if (this._playmode === PLAY) {
+      src.onended = () => {
+        if (this._source === src) {
+          this._source = null
+          this._gain = null
+          this._playmode = STOP
+        }
+      }
+    }
+  }
+
+  _stopSource(): void {
+    if (this._source) {
+      try {
+        this._source.onended = null
+        this._source.stop()
+      } catch {
+        // already stopped
+      }
+      this._source.disconnect()
+      this._source = null
+    }
+    if (this._gain) {
+      this._gain.disconnect()
+      this._gain = null
+    }
+    const snd = this._engine._sounds[this._soundId]
+    if (snd) snd.pending.delete(this)
+  }
+}
+
 export class Coccoon {
   _canvas: HTMLCanvasElement
   _ctx: CanvasRenderingContext2D
   _images: LoadedImage[] = []
   _sprites: Sprite[] = []
   _texts: Text[] = []
+  _sounds: LoadedSound[] = []
+  _channels: Sound[] = []
+  _audioCtx: AudioContext | null = null
+  _masterGain: GainNode | null = null
   _inputState: InputState = { key_presses: [], clicks: [] }
   // Keys that have been surfaced by at least one update() since being pressed.
   _readSincePress = new Set<number>()
@@ -281,6 +442,8 @@ export class Coccoon {
   private _keyDown = (e: KeyboardEvent) => {
     const codeKey = e.code
     if (!(codeKey in KEY_MAP)) return
+    // A keypress is a user gesture — unblock audio the browser held suspended.
+    if (this._audioCtx && this._audioCtx.state === "suspended") void this._audioCtx.resume()
     if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault()
     const code = KEY_MAP[codeKey]
     if (code === -1) {
@@ -326,6 +489,48 @@ export class Coccoon {
   _clearGameNodes(): void {
     this._sprites = []
     this._texts = []
+  }
+
+  // Lazily create the AudioContext and (re)resume it. Browsers start it
+  // suspended until a user gesture, so this is also called from _keyDown.
+  _ensureAudio(): void {
+    if (!this._audioCtx) {
+      const AC: typeof AudioContext =
+        window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      this._audioCtx = new AC()
+      this._masterGain = this._audioCtx.createGain()
+      this._masterGain.gain.value = 1
+      this._masterGain.connect(this._audioCtx.destination)
+    }
+    if (this._audioCtx.state === "suspended") void this._audioCtx.resume()
+  }
+
+  _loadSounds(entries: string[]): void {
+    this._sounds = entries.map((url) => ({ url, buffer: null, pending: new Set<Sound>() }))
+    this._sounds.forEach((snd) => {
+      fetch(snd.url)
+        .then((r) => r.arrayBuffer())
+        .then((buf) => {
+          this._ensureAudio()
+          return this._audioCtx!.decodeAudioData(buf)
+        })
+        .then((decoded) => {
+          snd.buffer = decoded
+          // Fire any channels that were waiting on this clip to decode.
+          for (const ch of Array.from(snd.pending)) {
+            snd.pending.delete(ch)
+            if (ch.playmode !== STOP) ch._playBuffer(decoded)
+          }
+        })
+        .catch((err) => {
+          console.log("[v0] coccoon sound load failed:", snd.url, err)
+        })
+    })
+  }
+
+  _stopAllChannels(): void {
+    for (const ch of this._channels) ch._stopSource()
+    this._channels = []
   }
 
   _loadImages(entries: ImageEntry[]): void {
@@ -407,6 +612,12 @@ export class Coccoon {
     cancelAnimationFrame(this._raf)
     window.removeEventListener("keydown", this._keyDown)
     window.removeEventListener("keyup", this._keyUp)
+    this._stopAllChannels()
+    if (this._audioCtx) {
+      void this._audioCtx.close()
+      this._audioCtx = null
+      this._masterGain = null
+    }
   }
 
   _render(): void {
