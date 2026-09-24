@@ -265,22 +265,22 @@ export default function CreatePage() {
                 type="button"
                 onClick={() => loadCartridge(activeId)}
                 disabled={!activeId}
-                className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-emerald-900"
+                className="rounded-md border border-emerald-800/70 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-emerald-800/70"
               >
                 Reset
               </button>
               <div className="ml-auto flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={handleUploadClick}
-                  className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+          onClick={handleUploadClick}
+          className="rounded-md border border-emerald-800/70 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
                 >
                   ↑ Upload
                 </button>
                 <button
                   type="button"
-                  onClick={handleDownload}
-                  className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+          onClick={handleDownload}
+          className="rounded-md border border-emerald-800/70 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
                 >
                   ↓ Download
                 </button>
@@ -297,8 +297,8 @@ export default function CreatePage() {
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-950 bg-black/40 p-3">
               <button
                 type="button"
-                onClick={handleAddMediaClick}
-                className="rounded-md border border-emerald-900 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+          onClick={handleAddMediaClick}
+          className="rounded-md border border-emerald-800/70 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
               >
                 + Media
               </button>
