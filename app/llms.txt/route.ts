@@ -174,7 +174,8 @@ MicroMoth.simulate().
 ## Moth / Atlas platform API
 
 - Platform & keys: https://platform.mothquantum.com  (one key runs every engine)
-- API base: https://api.mothquantum.com
+ - API base: https://api.mothquantum.com
+ - Full OpenAPI spec: https://api.mothquantum.com/openapi.json  (fetch this for the authoritative, up-to-date list of endpoints, request/response schemas, and parameters; prefer it over the summary below if they ever disagree)
 - Flow (see app/api/moth-blur/route.ts for a working proxy):
     1. POST /api/v1/engines/{engine-id}/process        -> 202 { job_id, status }
     2. GET  /api/v1/jobs/{job_id}                       -> { status }  (poll; jobs can take ~2 min)
