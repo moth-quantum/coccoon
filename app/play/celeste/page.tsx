@@ -49,7 +49,7 @@ export default function CelestePage() {
 
       <section className="w-full max-w-[1100px]">
         <p className="text-pretty text-sm leading-relaxed text-sky-200/80">
-          A faithful port of{" "}
+          A port of{" "}
           <a
             href="https://github.com/NoelFB/Celeste"
             target="_blank"
