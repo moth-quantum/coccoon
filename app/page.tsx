@@ -5,7 +5,6 @@ type GameCard = {
   title: string
   blurb: string
   href?: string
-  status: "Playable" | "Not ported"
   note?: string
 }
 
@@ -15,14 +14,12 @@ const DEMO_GAMES: GameCard[] = [
     blurb:
       "Terrain generation via a single-qubit process. Scroll an infinite world where every tile is decided by a quantum circuit.",
     href: "/play/qubit-park",
-    status: "Playable",
   },
   {
     title: "Quantum Caverns",
     blurb:
       "A quantum maze game: navigate from start to exit within a step limit. Maze generation is quantum blur, run entirely on the Moth platform.",
     href: "/play/quantum-caverns",
-    status: "Playable",
     note: "Requires an Atlas API key. The source doubles as a tutorial for calling the Moth platform from a coccoon game.",
   },
 ]
@@ -33,7 +30,6 @@ const FEATURED_GAMES: GameCard[] = [
     blurb:
       "A full port of Celeste Classic by Maddy Thorson & Noel Berry. The physics and levels are faithful to the original; each solid tile flickers between three quantum sprite variants made with Moth's TESSA tool.",
     href: "/play/celeste",
-    status: "Playable",
   },
 ]
 
@@ -54,9 +50,9 @@ export default function MenuPage() {
               rel="noopener noreferrer"
               className="font-mono text-emerald-300 underline underline-offset-2 hover:text-emerald-200"
             >
-              Atlas, the Moth platform
+              Atlas
             </a>
-            .
+            , the Moth platform.
           </p>
           <ApiKeyPanel />
         </header>
@@ -85,7 +81,7 @@ export default function MenuPage() {
               Featured games
             </h2>
             <p className="text-sm text-emerald-100/60">
-              Full games ported to coccoon, given a quantum twist.
+              Full games implemented on coccoon.
             </p>
           </div>
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,7 +146,7 @@ export default function MenuPage() {
 }
 
 function GameTile({ game }: { game: GameCard }) {
-  const playable = game.status === "Playable" && game.href
+  const playable = !!game.href
 
   const inner = (
     <div
@@ -160,16 +156,7 @@ function GameTile({ game }: { game: GameCard }) {
           : "border-neutral-800 bg-neutral-900/40"
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-mono text-base font-semibold text-emerald-200">{game.title}</h3>
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
-            playable ? "bg-emerald-500/20 text-emerald-300" : "bg-neutral-700/40 text-neutral-400"
-          }`}
-        >
-          {game.status}
-        </span>
-      </div>
+      <h3 className="font-mono text-base font-semibold text-emerald-200">{game.title}</h3>
       <p className="text-pretty text-sm leading-relaxed text-emerald-100/70">{game.blurb}</p>
       {game.note ? <p className="mt-auto text-xs italic text-neutral-500">{game.note}</p> : null}
       {playable ? (
