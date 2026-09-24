@@ -249,6 +249,36 @@ export class Text {
   }
 }
 
+// ---- Uploaded assets -----------------------------------------------------
+// A cartridge is a single text file, so it can't embed binary PNGs or WAVs.
+// Instead, files uploaded in the create editor are registered here by filename
+// and resolved to a runtime URL (a blob URL in the browser). `asset("hero.png")`
+// returns that URL, ready to hand to ImageList or SoundList. The create page
+// repopulates this registry before each run.
+const _assetRegistry = new Map<string, string>()
+
+export function registerAsset(name: string, url: string): void {
+  _assetRegistry.set(name, url)
+}
+
+export function clearAssets(): void {
+  _assetRegistry.clear()
+}
+
+export function asset(name: string): string {
+  const url = _assetRegistry.get(name)
+  if (!url) {
+    const known = [..._assetRegistry.keys()]
+    throw new Error(
+      `No uploaded asset named "${name}".` +
+        (known.length
+          ? ` Available: ${known.join(", ")}.`
+          : " Upload a PNG or WAV in the editor first, then reference it by filename."),
+    )
+  }
+  return url
+}
+
 export class ImageList {
   _entries: ImageEntry[]
   constructor(engine: Coccoon, entries: ImageEntry[]) {

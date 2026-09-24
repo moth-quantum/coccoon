@@ -1,13 +1,14 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { CARTRIDGES } from "@/lib/cartridges"
-import { CartridgeRunner, type LogLevel } from "@/components/cartridge-runner"
+import { CartridgeRunner, type CartridgeAsset, type LogLevel } from "@/components/cartridge-runner"
 import { CodeEditor } from "@/components/code-editor"
 import { SourceViewer } from "@/components/source-viewer"
 
 type LogEntry = { level: LogLevel; message: string; id: number }
+type MediaAsset = CartridgeAsset & { kind: "image" | "audio" }
 
 export default function CreatePage() {
   const [code, setCode] = useState(CARTRIDGES[0].code)
@@ -15,10 +16,21 @@ export default function CreatePage() {
   const [runToken, setRunToken] = useState(0)
   const [running, setRunning] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
+  const [assets, setAssets] = useState<MediaAsset[]>([])
   const logIdRef = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const mediaInputRef = useRef<HTMLInputElement>(null)
   const consoleRef = useRef<HTMLDivElement>(null)
   const logScrollRef = useRef<HTMLDivElement>(null)
+
+  // Revoke every object URL when the page unmounts so uploaded media doesn't leak.
+  const assetsRef = useRef(assets)
+  assetsRef.current = assets
+  useEffect(() => {
+    return () => {
+      for (const a of assetsRef.current) URL.revokeObjectURL(a.url)
+    }
+  }, [])
 
   const handleDownload = useCallback(() => {
     const cart = CARTRIDGES.find((c) => c.id === activeId)
@@ -36,6 +48,41 @@ export default function CreatePage() {
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click()
+  }, [])
+
+  const handleAddMediaClick = useCallback(() => {
+    mediaInputRef.current?.click()
+  }, [])
+
+  const handleMediaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    e.target.value = ""
+    if (files.length === 0) return
+    setAssets((prev) => {
+      const next = [...prev]
+      for (const file of files) {
+        const kind: MediaAsset["kind"] =
+          file.type.startsWith("audio/") || /\.(wav|mp3|ogg)$/i.test(file.name) ? "audio" : "image"
+        const url = URL.createObjectURL(file)
+        // Re-uploading a file with the same name replaces it (revoke the old URL).
+        const existing = next.findIndex((a) => a.name === file.name)
+        if (existing >= 0) {
+          URL.revokeObjectURL(next[existing].url)
+          next[existing] = { name: file.name, url, kind }
+        } else {
+          next.push({ name: file.name, url, kind })
+        }
+      }
+      return next
+    })
+  }, [])
+
+  const removeAsset = useCallback((name: string) => {
+    setAssets((prev) => {
+      const target = prev.find((a) => a.name === name)
+      if (target) URL.revokeObjectURL(target.url)
+      return prev.filter((a) => a.name !== name)
+    })
   }, [])
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,6 +284,49 @@ export default function CreatePage() {
                 />
               </div>
             </div>
+
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-950 bg-black/40 p-3">
+              <button
+                type="button"
+                onClick={handleAddMediaClick}
+                className="rounded-md border border-emerald-900 px-3 py-1.5 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+              >
+                + Media
+              </button>
+              <input
+                ref={mediaInputRef}
+                type="file"
+                accept="image/*,audio/*,.png,.wav"
+                multiple
+                onChange={handleMediaChange}
+                className="hidden"
+              />
+              {assets.length === 0 ? (
+                <span className="font-mono text-[11px] leading-relaxed text-emerald-100/40">
+                  Upload PNGs or WAVs, then reference them by filename:{" "}
+                  <code className="rounded bg-emerald-950/70 px-1 py-0.5 text-emerald-300">asset(&quot;hero.png&quot;)</code>
+                </span>
+              ) : (
+                assets.map((a) => (
+                  <span
+                    key={a.name}
+                    className="flex items-center gap-1.5 rounded-md border border-emerald-900 bg-neutral-900/70 px-2 py-1 font-mono text-[11px] text-emerald-200"
+                  >
+                    <span className="select-none text-emerald-500">{a.kind === "audio" ? "♪" : "▦"}</span>
+                    {a.name}
+                    <button
+                      type="button"
+                      onClick={() => removeAsset(a.name)}
+                      aria-label={`Remove ${a.name}`}
+                      className="select-none text-emerald-700 transition-colors hover:text-rose-400"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+
             <CodeEditor
               value={code}
               onChange={setCode}
@@ -262,6 +352,7 @@ export default function CreatePage() {
               <CartridgeRunner
                 code={code}
                 runToken={runToken}
+                assets={assets}
                 onLog={pushLog}
                 onError={handleError}
                 onStarted={() => {}}

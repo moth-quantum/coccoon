@@ -92,6 +92,17 @@ Rules:
   diff against the previous frame for one-shot presses.
 - Audio: new SoundList(engine, ["/audio/foo.wav"]) then new Sound(engine, id)
   (add LOOP for looping music). Audio starts after the first input.
+- Uploaded media (PNGs/WAVs): a cartridge is a single text file and cannot
+  embed binary data. In the Create editor, click "+ Media" to upload PNGs/WAVs,
+  then reference each by its filename with the asset() helper (imported from
+  "@/lib/coccoon"). It returns a runtime URL you pass straight to ImageList or
+  SoundList:
+    import { ImageList, SoundList, Sound, asset } from "@/lib/coccoon"
+    new ImageList(engine, [asset("hero.png")])        // image id 0
+    new SoundList(engine, [asset("beep.wav")])         // sound id 0
+    new Sound(engine, 0)                               // play it
+  asset("name") throws if no file with that name was uploaded, so upload first.
+  Without uploads, stick to color()/Colors sprites (procedural pixel art).
 - Paste your finished class into the Create editor and press Run.
 
 ## Sizing & layout guardrails (READ THIS or your text will be unreadable)

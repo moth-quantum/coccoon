@@ -15,9 +15,14 @@ import {
   SoundList,
   Sound,
   LOOP,
+  asset,
+  registerAsset,
+  clearAssets,
   type Game,
 } from "@/lib/coccoon"
 import { MicroMoth } from "@/lib/micromoth"
+
+export type CartridgeAsset = { name: string; url: string }
 
 // The modules a cartridge is allowed to import from. These are exactly the
 // primitives the built-in demo games use, so a cartridge is written the same
@@ -36,6 +41,7 @@ const CARTRIDGE_MODULES: Record<string, Record<string, unknown>> = {
     SoundList,
     Sound,
     LOOP,
+    asset,
   },
   "@/lib/micromoth": { MicroMoth },
 }
@@ -46,6 +52,9 @@ type CartridgeRunnerProps = {
   code: string
   // Increment this to (re)compile and run the current code.
   runToken: number
+  // Uploaded PNG/WAV files, registered so cartridges can resolve them by name
+  // via asset("filename").
+  assets?: CartridgeAsset[]
   onLog: (level: LogLevel, message: string) => void
   onError: (message: string) => void
   onStarted: () => void
@@ -136,6 +145,7 @@ function compileCartridge(code: string, sandboxConsole: Console): Game {
 export function CartridgeRunner({
   code,
   runToken,
+  assets,
   onLog,
   onError,
   onStarted,
@@ -147,6 +157,9 @@ export function CartridgeRunner({
   // Latest code, read at run time so we always compile the current buffer.
   const codeRef = useRef(code)
   codeRef.current = code
+  // Latest uploaded assets, read at run time.
+  const assetsRef = useRef(assets)
+  assetsRef.current = assets
 
   useEffect(() => {
     if (runToken === 0) return // 0 = idle, nothing running yet
@@ -166,6 +179,11 @@ export function CartridgeRunner({
     const run = () => {
       if (cancelled || !canvasRef.current) return
       try {
+        // Make uploaded PNGs/WAVs resolvable by filename via asset(). Reset
+        // first so files removed since the last run no longer resolve.
+        clearAssets()
+        for (const a of assetsRef.current ?? []) registerAsset(a.name, a.url)
+
         const game = compileCartridge(codeRef.current, sandboxConsole)
 
         // Wrap process so a runtime error stops the loop and surfaces cleanly
