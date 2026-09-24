@@ -112,25 +112,14 @@ export default function MenuPage() {
           </Link>
         </section>
 
-        <section aria-labelledby="about-heading" className="flex flex-col gap-4 border-t border-emerald-950 pt-10">
-          <h2 id="about-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
-            About this port
-          </h2>
-          <div className="text-sm leading-relaxed text-emerald-100/75">
-            <p>
-              A web reimplementation of coccoon, originally a Godot 4 project. The engine primitives (
-              <span className="font-mono">Sprite</span>, <span className="font-mono">Text</span>,{" "}
-              <span className="font-mono">ImageList</span>, <span className="font-mono">update()</span>) render to an
-              HTML5 canvas, so game code ports across almost verbatim.
-            </p>
-          </div>
+        <section className="flex border-t border-emerald-950 pt-10">
           <a
             href="https://github.com/moth-quantum/coccoon"
             target="_blank"
             rel="noopener noreferrer"
             className="w-fit font-mono text-xs uppercase tracking-widest text-emerald-400 underline underline-offset-4 hover:text-emerald-300"
           >
-            Original source on GitHub →
+            Source on GitHub →
           </a>
         </section>
       </div>
