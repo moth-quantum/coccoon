@@ -56,6 +56,13 @@ write a new game with no other context.
 
 ## How to write a cartridge
 
+The output is a single .js (or .ts) file. Write the class, export it, and hand
+the file to the user. You do NOT need to locate, create, or modify any existing
+project — the file stands alone. There is no repo to find, no tsconfig.json, no
+package.json, no build step. If a web app is present it can be dropped into
+lib/games/, but that is optional: the user pastes the file straight into the
+Create editor at /create and presses Run.
+
 A cartridge is authored EXACTLY like the demo games below:
 
   import { Sprite, Text, color, GRID_W, GRID_H, type Coccoon, type Game } from "@/lib/coccoon"
