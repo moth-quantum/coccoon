@@ -69,6 +69,10 @@ A cartridge is authored EXACTLY like the demo games below:
     }
   }
 
+Type annotations are OPTIONAL. The editor transpiles TypeScript, but plain
+JavaScript works too — drop the ": Coccoon", ": number", and "implements Game"
+and the same class runs unchanged. Write whichever you prefer.
+
 Rules:
 - Import only from "@/lib/coccoon" and "@/lib/micromoth". Everything you need
   is exported from those two modules (their full source is below).
@@ -91,6 +95,15 @@ them up is the most common mistake:
 
 - Sprite x/y/size and Text x/y/width/height are in GRID CELLS (0..31, 0..17),
   NOT pixels. A Text with width=10, height=2 occupies 400x80 px.
+- The Text constructor argument order is NOT the same as Sprite's — do not
+  guess it from Sprite. The exact signature is:
+    new Text(engine, text, width, height, x, y, fontSize?, fontColor?, bgColor?)
+  width/height come BEFORE x/y. width, height, x, y are in grid cells; x/y
+  default to 0 and use the SAME bottom-up axis as Sprite (y=0 is the bottom
+  row, NOT the top — it does not follow CSS top-down convention). fontSize is
+  in raw canvas pixels (default 16); fontColor defaults to black and bgColor to
+  white. Getting the order wrong throws no error — text just lands in the wrong
+  place at the wrong size.
 - Text fontSize is in RAW CANVAS PIXELS, not cells and not CSS points. On a
   720px-tall canvas, 12-16px text is nearly invisible. Use these benchmarks:
     - Titles / headers:      36-56 px
@@ -114,6 +127,19 @@ These are NOT interchangeable. They exist for opposite purposes:
   A synchronous statevector simulator with 0ms latency, no key, no network.
   USE IT FOR real-time mechanics: per-frame logic, button-press reactions,
   small 1-6 qubit circuits that must resolve this frame. See Qubit Park.
+
+  IMPORTANT: MicroMoth is a single namespace object; QuantumCircuit and
+  simulate are properties on it, NOT standalone named exports. Import
+  { MicroMoth } and reach through it — do NOT write
+  import { QuantumCircuit, simulate } (that yields "QuantumCircuit is not a
+  constructor" at runtime).
+
+    import { MicroMoth } from "@/lib/micromoth"
+    const qc = new MicroMoth.QuantumCircuit(1)
+    qc.h(0)
+    const probs = MicroMoth.simulate(qc, 1024, "probabilities_dict")
+    // probs["0"] ~= 0.5,  probs["1"] ~= 0.5
+    // simulate modes: "counts" | "statevector" | "probabilities_dict" | "memory"
 - Atlas (REMOTE, the Moth platform): an ASYNCHRONOUS job pipeline. You POST a
   job and POLL for the result, which can take seconds to minutes (real QPUs /
   heavy simulators). USE IT FOR loading screens, level generation / prefetch,
