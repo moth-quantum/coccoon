@@ -47,9 +47,17 @@ export function ApiKeyPanel() {
         {hasKey ? "Atlas API key set" : "Set Atlas API key"}
       </button>
       <p className="max-w-md text-xs leading-relaxed text-emerald-100/50">
-        One key for the whole engine. Games that run quantum work on{" "}
-        <span className="font-mono text-emerald-300">Atlas</span> — like Quantum Caverns — use it. Kept only for this
-        browser session.
+        One key for the whole engine. Required for all games that run quantum jobs on{" "}
+        <span className="font-mono text-emerald-300">Atlas</span>. Get yours from{" "}
+        <a
+          href="https://platform.mothquantum.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-300 underline underline-offset-2 hover:text-emerald-200"
+        >
+          platform.mothquantum.com
+        </a>
+        .
       </p>
 
       {open ? (
@@ -67,16 +75,16 @@ export function ApiKeyPanel() {
               Atlas API key
             </h2>
             <p className="text-xs leading-relaxed text-emerald-100/70">
-              Paste a <span className="font-mono">blur-core-v1</span> key from{" "}
+              Get your key from{" "}
               <a
                 href="https://platform.mothquantum.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-emerald-300 underline underline-offset-2 hover:text-emerald-200"
               >
-                Atlas, the Moth platform
+                platform.mothquantum.com
               </a>
-              . It is sent only to this app&apos;s server proxy and held for this browser session — never stored to disk.
+              . It is saved in this browser and sent only to this app&apos;s server proxy — never to any third party.
             </p>
             <label htmlFor={inputId} className="sr-only">
               Atlas API key

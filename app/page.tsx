@@ -56,10 +56,7 @@ export default function MenuPage() {
             >
               Atlas, the Moth platform
             </a>
-            . The engine renders to a virtual <span className="font-mono text-emerald-300">32×18</span> cell grid.
-            Simple quantum effects run in the browser on{" "}
-            <span className="font-mono text-emerald-300">MicroMoth</span>, a lightweight statevector simulator; heavier
-            work — like Quantum Caverns&apos; maze generation — runs on Atlas using an API key you provide below.
+            .
           </p>
           <ApiKeyPanel />
         </header>
