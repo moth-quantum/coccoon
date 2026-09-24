@@ -4,6 +4,8 @@ import { useCallback, useRef, useState } from "react"
 import Link from "next/link"
 import { CARTRIDGES } from "@/lib/cartridges"
 import { CartridgeRunner, type LogLevel } from "@/components/cartridge-runner"
+import { CodeEditor } from "@/components/code-editor"
+import { SourceViewer } from "@/components/source-viewer"
 
 type LogEntry = { level: LogLevel; message: string; id: number }
 
@@ -14,7 +16,37 @@ export default function CreatePage() {
   const [running, setRunning] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const logIdRef = useRef(0)
-  const editorRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleDownload = useCallback(() => {
+    const cart = CARTRIDGES.find((c) => c.id === activeId)
+    const base = (cart?.name ?? "cartridge").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    const blob = new Blob([code], { type: "text/javascript" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${base || "cartridge"}.js`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }, [code, activeId])
+
+  const handleUploadClick = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    const text = await file.text()
+    setCode(text)
+    setActiveId("")
+    setRunning(false)
+    setRunToken(0)
+    setLogs([])
+  }, [])
 
   const pushLog = useCallback((level: LogLevel, message: string) => {
     setLogs((prev) => [...prev.slice(-199), { level, message, id: logIdRef.current++ }])
@@ -116,6 +148,24 @@ export default function CreatePage() {
               {cart.name}
             </button>
           ))}
+          <div className="ml-auto">
+            <SourceViewer
+              title="Engine reference"
+              triggerLabel="Engine reference"
+              files={[
+                {
+                  key: "lib/coccoon",
+                  label: "coccoon.ts",
+                  note: "The coccoon engine (read-only): the 32x18 grid, sprites, text, audio, and per-frame input your cartridge drives.",
+                },
+                {
+                  key: "lib/micromoth",
+                  label: "micromoth.ts",
+                  note: "MicroQiskit / MicroMoth (read-only): the tiny statevector simulator exposed to cartridges as the MicroMoth global.",
+                },
+              ]}
+            />
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -142,24 +192,40 @@ export default function CreatePage() {
               <button
                 type="button"
                 onClick={() => loadCartridge(activeId)}
-                className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+                disabled={!activeId}
+                className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-emerald-900"
               >
                 Reset
               </button>
-              <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-emerald-700">
-                Tab = 2 spaces
-              </span>
+              <div className="ml-auto flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleUploadClick}
+                  className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+                >
+                  ↑ Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="rounded-md border border-emerald-900 px-4 py-2 font-mono text-xs uppercase tracking-widest text-emerald-300 transition-colors hover:border-emerald-600"
+                >
+                  ↓ Download
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".js,.txt,text/javascript,application/javascript,text/plain"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
             </div>
-            <textarea
-              ref={editorRef}
+            <CodeEditor
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={setCode}
               onKeyDown={handleKeyDown}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              aria-label="Cartridge source code"
-              className="h-[520px] w-full resize-none rounded-lg border border-emerald-950 bg-black/80 p-4 font-mono text-[13px] leading-relaxed text-emerald-100 outline-none focus:ring-2 focus:ring-emerald-500/50"
+              ariaLabel="Cartridge source code"
             />
           </section>
 

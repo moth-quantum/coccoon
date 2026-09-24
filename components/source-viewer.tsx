@@ -57,10 +57,12 @@ export function SourceViewer({
   files,
   title,
   accent = "emerald",
+  triggerLabel = "View code",
 }: {
   files: SourceFile[]
   title: string
   accent?: Accent
+  triggerLabel?: string
 }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
@@ -122,7 +124,7 @@ export function SourceViewer({
         onClick={() => setOpen(true)}
         className={`rounded-md border px-3 py-2 text-xs uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 ${a.trigger} ${a.ring}`}
       >
-        View code
+        {triggerLabel}
       </button>
 
       {open && (

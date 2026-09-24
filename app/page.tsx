@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ApiKeyPanel } from "@/components/api-key-panel"
+import { MenuNav } from "@/components/menu-nav"
 
 type GameCard = {
   title: string
@@ -36,6 +37,7 @@ const FEATURED_GAMES: GameCard[] = [
 export default function MenuPage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-emerald-50">
+      <MenuNav />
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-16">
         <header className="flex flex-col gap-4">
           <p className="font-mono text-xs uppercase tracking-[0.35em] text-emerald-500">Retro quantum game engine by James Wootton</p>
@@ -97,7 +99,11 @@ export default function MenuPage() {
           <h2 id="create-heading" className="font-mono text-sm uppercase tracking-[0.3em] text-emerald-500">
             Create
           </h2>
-          <Link href="/create" className="block">
+          <Link
+            href="/create"
+            data-menu-item
+            className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+          >
             <div className="flex flex-col gap-3 rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-6 transition-colors hover:border-emerald-500 hover:bg-emerald-900/40 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-2">
                 <h3 className="font-mono text-base font-semibold text-emerald-200">Code your own cartridge</h3>
@@ -149,7 +155,11 @@ function GameTile({ game }: { game: GameCard }) {
 
   if (playable) {
     return (
-      <Link href={game.href!} className="block h-full">
+      <Link
+        href={game.href!}
+        data-menu-item
+        className="block h-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+      >
         {inner}
       </Link>
     )
