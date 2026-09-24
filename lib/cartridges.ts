@@ -5,9 +5,14 @@
 //   process(delta, engine)   — called every frame (~30fps)
 //
 // The following are injected as globals when the cartridge runs:
-//   ImageList, Sprite, Text, color, Colors, GRID_W, GRID_H, MicroMoth, console
+//   ImageList, Sprite, Text, color, Colors, GRID_W, GRID_H,
+//   SoundList, Sound, LOOP, MicroMoth, console
 // These are the same primitives the built-in games use, so cartridges have
 // full access to the coccoon engine and the MicroMoth quantum simulator.
+//
+// Audio: register sounds with `new SoundList(engine, ["/audio/foo.wav"])`,
+// then play a channel with `new Sound(engine, id)` (add LOOP for looping
+// music, e.g. `new Sound(engine, 0, LOOP)`). Audio starts on first input.
 
 export type Cartridge = {
   id: string

@@ -11,6 +11,9 @@ import {
   GRID_W,
   GRID_H,
   CELL,
+  SoundList,
+  Sound,
+  LOOP,
   type Game,
 } from "@/lib/coccoon"
 import { MicroMoth } from "@/lib/micromoth"
@@ -38,6 +41,9 @@ function compileCartridge(code: string, sandboxConsole: Console): Game {
     "Colors",
     "GRID_W",
     "GRID_H",
+    "SoundList",
+    "Sound",
+    "LOOP",
     "MicroMoth",
     "console",
     `"use strict";
@@ -56,6 +62,9 @@ return { ready: ready, process: process };`,
     Colors,
     GRID_W,
     GRID_H,
+    SoundList,
+    Sound,
+    LOOP,
     MicroMoth,
     sandboxConsole,
   ) as Game
