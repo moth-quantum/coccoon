@@ -1,6 +1,18 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { tokenizeLines, type TokenType } from "@/lib/highlight"
+
+const TOKEN_COLORS: Record<TokenType, string> = {
+  comment: "text-neutral-500 italic",
+  string: "text-amber-300",
+  keyword: "text-violet-400",
+  number: "text-orange-300",
+  function: "text-sky-300",
+  type: "text-emerald-300",
+  punctuation: "text-neutral-400",
+  plain: "text-neutral-200",
+}
 
 export type SourceFile = {
   /** whitelist key understood by /api/source */
@@ -94,7 +106,7 @@ export function SourceViewer({
   }, [open])
 
   const code = current ? cache[current.key] : undefined
-  const lines = code ? code.replace(/\n$/, "").split("\n") : []
+  const lines = useMemo(() => (code !== undefined ? tokenizeLines(code) : []), [code])
 
   return (
     <>
@@ -160,7 +172,7 @@ export function SourceViewer({
               {code !== undefined && (
                 <pre className="min-w-full overflow-x-auto p-0 text-[12.5px] leading-relaxed">
                   <code className="block font-mono">
-                    {lines.map((line, i) => (
+                    {lines.map((tokens, i) => (
                       <span key={i} className="flex">
                         <span
                           aria-hidden
@@ -168,7 +180,15 @@ export function SourceViewer({
                         >
                           {i + 1}
                         </span>
-                        <span className="whitespace-pre px-3 text-neutral-200">{line || " "}</span>
+                        <span className="whitespace-pre px-3">
+                          {tokens.length === 0
+                            ? " "
+                            : tokens.map((t, j) => (
+                                <span key={j} className={TOKEN_COLORS[t.type]}>
+                                  {t.text}
+                                </span>
+                              ))}
+                        </span>
                       </span>
                     ))}
                   </code>
