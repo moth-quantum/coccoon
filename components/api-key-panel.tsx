@@ -46,6 +46,15 @@ export function ApiKeyPanel() {
         />
         {hasKey ? "Atlas API key set" : "Set Atlas API key"}
       </button>
+      {hasKey ? (
+        <button
+          type="button"
+          onClick={() => setKey("")}
+          className="inline-flex items-center gap-2 rounded-md border border-red-800/60 bg-red-950/30 px-3 py-2 font-mono text-xs uppercase tracking-widest text-red-300 transition-colors hover:border-red-500 hover:bg-red-900/40"
+        >
+          Delete key
+        </button>
+      ) : null}
       <p className="max-w-md text-xs leading-relaxed text-emerald-100/50">
         One key for the whole engine. Required for all games that run quantum jobs on{" "}
         <span className="font-mono text-emerald-300">Atlas</span>. Get yours from{" "}
