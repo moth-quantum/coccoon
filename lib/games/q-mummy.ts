@@ -491,7 +491,8 @@ export class QMummy implements Game {
       for (const ri of roomIndices) for (const c of this.roomGeoms[ri]) cellSet.add(key(c.x, c.y))
       for (const [a, b] of mergePairs) {
         if (roomIndices.includes(a) && roomIndices.includes(b)) {
-          for (const c of this.connectorByPair.get(edgeKey(a, b))!.cells) cellSet.add(key(c.x, c.y))
+          const connector = this.connectorByPair.get(edgeKey(a, b))
+          if (connector) for (const c of connector.cells) cellSet.add(key(c.x, c.y))
         }
       }
 
