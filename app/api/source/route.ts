@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic"
 const FILES: Record<string, string> = {
   "games/qubit-park": "lib/games/qubit-park.ts",
   "games/quantum-caverns": "lib/games/quantum-caverns.ts",
+  "games/q-mummy": "lib/games/q-mummy.ts",
   "games/celeste": "lib/games/celeste.ts",
   "games/celeste-data": "lib/games/celeste-data.ts",
   "lib/coccoon": "lib/coccoon.ts",

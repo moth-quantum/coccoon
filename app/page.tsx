@@ -27,6 +27,13 @@ const DEMO_GAMES: GameCard[] = [
 
 const FEATURED_GAMES: GameCard[] = [
   {
+    title: "Q Mummy",
+    blurb:
+      "Inspired by Oh Mummy (1984): explore a pyramid of 120 rooms, encircle chambers to open them, grab the key and dodge the mummies. The chamber layouts were generated on IBM's ibm_phoenix QPU with Atlas's Labyrinth engine.",
+    href: "/play/q-mummy",
+    note: "Built for the Quantum Game Jam 2026 and Moth Hack. Levels are baked-in real quantum measurements — no API key needed.",
+  },
+  {
     title: "Celeste (Quantum Remix)",
     blurb:
       "A full port of Celeste Classic by Maddy Thorson & Noel Berry. The physics and levels are faithful to the original; each solid tile flickers between three quantum sprite variants made with Moth's TESSA tool.",
