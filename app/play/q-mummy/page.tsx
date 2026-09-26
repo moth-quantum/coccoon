@@ -44,7 +44,7 @@ export default function QMummyPage() {
 
       <section className="w-full max-w-[1100px]">
         <p className="text-pretty text-sm leading-relaxed text-amber-100/90">
-          Inspired by <em>Oh Mummy</em> (1984), rebuilt on coccoon for the Quantum Game Jam 2026 and Moth Hack. Explore
+          Inspired by <em>Oh Mummy</em> (1984), built on coccoon for the Quantum Game Jam 2026 and Moth Hack. Explore
           a pyramid of 120 rooms: walk the full perimeter of a chamber to open it, revealing treasure, a mummy, or the
           key. Grab the key while dodging the mummies, then reach the exit to descend to the next level.
         </p>
