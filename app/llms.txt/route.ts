@@ -178,8 +178,9 @@ MicroMoth.simulate().
  - Full OpenAPI spec: https://api.mothquantum.com/openapi.json  (fetch this for the authoritative, up-to-date list of endpoints, request/response schemas, and parameters; prefer it over the summary below if they ever disagree)
 - Flow (see app/api/moth-blur/route.ts for a working proxy):
     1. POST /api/v1/engines/{engine-id}/process        -> 202 { job_id, status }
-    2. GET  /api/v1/jobs/{job_id}                       -> { status }  (poll; jobs can take ~2 min)
-    3. GET  /api/v1/jobs/{job_id}/result                -> { result: ... }
+    2. GET  /api/v1/jobs/{job_id}/status                -> { status, result? }  (poll; can take ~2 min)
+    3. GET  /api/v1/jobs/{job_id}/result                -> { result: ... }  (fallback if /status has no inline result)
+  Poll /jobs/{job_id}/status, NOT /jobs/{job_id}. The plain /jobs/{job_id} record is eventually-consistent and can report "queued" for minutes after the job has actually completed; /status reflects true state within seconds and embeds result.output on completion.
   Send the key as the "X-API-Key" header. List engines with GET /api/v1/engines.
 
 ---
