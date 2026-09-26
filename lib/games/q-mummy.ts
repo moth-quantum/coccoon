@@ -49,14 +49,15 @@ const RESPAWN_INVULN_FRAMES = 45
 const LEVEL_CLEAR_FRAMES = 90
 const MAX_LIFE_ICONS = 5
 
-// Four room-merge layouts, each from a different individual measurement shot
-// of the same real 120-qubit lattice run on IBM's ibm_fez QPU (via the Moth
-// Quantum Labyrinth engine, labyrinth-v1): for each raw bitstring sample, the
-// room-pairs whose bits agree in THAT shot are ranked by their known
-// ZZ-correlation strength and the top 40 are fused into connected chambers -
-// so every layout reflects a genuinely different real measurement outcome,
-// not just a different cutoff on the same averaged statistic. Room index =
-// row * 12 + col. Levels cycle through these as you clear them.
+// Eight room-merge layouts, each from a different individual measurement shot
+// of a real 120-qubit lattice run (via the Moth Quantum Labyrinth engine,
+// labyrinth-v1): the first four are from IBM's ibm_phoenix QPU, the last four
+// from IBM's ibm_fez QPU. For each raw bitstring sample, the room-pairs whose
+// bits agree in THAT shot are ranked by their known ZZ-correlation strength
+// and the top 40 are fused into connected chambers - so every layout reflects
+// a genuinely different real measurement outcome, not just a different cutoff
+// on the same averaged statistic. Room index = row * 12 + col. Levels cycle
+// through these as you clear them.
 interface LevelLayout {
   mergePairs: [number, number][]
 }
