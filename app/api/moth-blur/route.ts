@@ -11,10 +11,20 @@
 //      We return { jobId }.
 //
 //   2. { action: "poll", jobId, key }
-//        GET /api/v1/jobs/{jobId}            -> { status: "queued"|"running"|"completed"|"failed" }
-//      When status is "completed" we fetch the result from a SEPARATE endpoint:
-//        GET /api/v1/jobs/{jobId}/result     -> { result: { output: number[][] } }
-//      and return { status: "completed", output }. Otherwise { status }.
+//        GET /api/v1/jobs/{jobId}/status     -> { status, result?: { output } }
+//      and return { status: "completed", output } once done. Otherwise { status }.
+//
+// IMPORTANT — poll /status, NOT /jobs/{id}. The platform exposes two reads of a
+// job and they are NOT equivalent: GET /api/v1/jobs/{id} is an
+// eventually-consistent record that can keep reporting "queued" for MINUTES
+// after the job has actually finished, whereas GET /api/v1/jobs/{id}/status is
+// the authoritative live status and embeds result.output inline on completion.
+// Polling the former is what made jobs look like they "hang until you open the
+// dashboard" (the dashboard reads live status). Verified against the live API
+// on 2026-09-26: the two endpoints returned "queued" and "completed" for the
+// same job at the same instant. /status also saves a round-trip since it
+// carries the result; we fall back to GET /api/v1/jobs/{id}/result only if the
+// inline output is ever absent.
 //
 // The key comes from the request (entered in the coccoon menu / game UI, like
 // the original's coccoon.get_api_key()) or falls back to MOTH_API_KEY. It is
@@ -122,7 +132,8 @@ export async function POST(req: Request) {
     const jobId = payload.jobId
     if (!jobId) return json({ error: "missing_job" }, 400)
 
-    const { res, body } = await upstream(`${API_BASE}/api/v1/jobs/${jobId}`, { headers: auth })
+    // Poll the authoritative live status, not the lagging /jobs/{id} record.
+    const { res, body } = await upstream(`${API_BASE}/api/v1/jobs/${jobId}/status`, { headers: auth })
     if (!res) return json({ error: "poll_unreachable", retryable: true }, 504)
     if (res.status === 401 || res.status === 403) return json({ error: "unauthorized", retryable: false }, 401)
     const status = typeof body?.status === "string" ? body.status : null
@@ -131,6 +142,11 @@ export async function POST(req: Request) {
     }
 
     if (status === "completed") {
+      // /status embeds the result inline; use it and avoid the extra round-trip.
+      const inline = (body?.result as { output?: number[][] } | undefined)?.output
+      if (Array.isArray(inline)) return json({ status, output: inline })
+
+      // Fallback: fetch the dedicated result endpoint only if output is absent.
       const { res: rres, body: rbody } = await upstream(`${API_BASE}/api/v1/jobs/${jobId}/result`, { headers: auth })
       if (!rres) return json({ error: "result_unreachable", retryable: true }, 504)
       const result = rbody?.result as { output?: number[][] } | undefined
