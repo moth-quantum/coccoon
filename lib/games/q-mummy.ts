@@ -298,7 +298,8 @@ export class QMummy implements Game {
 
     if (this.state === "PLAYING") {
       if (startPressed) {
-        // debug skip: jump straight to the next level, no score awarded
+        // debug skip: jump straight to the next level, score reset to zero
+        this.score = 0
         this.level++
         this.startLevel()
       } else {
