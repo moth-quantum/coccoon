@@ -42,8 +42,6 @@ const DIRS: Vec[] = [
   { x: 0, y: -1 },
 ]
 
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
-
 export class QuantumCaverns implements Game {
   private _engine!: Coccoon
   private _getApiKey: () => string
@@ -283,35 +281,102 @@ export class QuantumCaverns implements Game {
     const height = this._makeInitialHeight()
     try {
       // 1. Submit the initial grid and get a job id back immediately.
-      const submit = await fetch("/api/moth-blur", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submit", values: this._heightToArray(height), strength: 0.25, key }),
+      const submit = await this._post({
+        action: "submit",
+        values: this._heightToArray(height),
+        strength: 0.25,
+        key,
       })
+      if (submit.status === 401 || submit.status === 403) return null // terminal: bad key
       if (!submit.ok) return null
-      const sd = (await submit.json()) as { jobId?: string }
-      if (!sd.jobId) return null
+      const sd = (await submit.json().catch(() => null)) as { jobId?: string } | null
+      if (!sd?.jobId) return null
 
       // 2. Poll until the job completes. The platform can take a couple of
-      //    minutes, so we keep polling until a generous deadline; transient
-      //    poll errors are ignored rather than aborting the whole generation.
+      //    minutes. We poll promptly first, settle to a steady cadence, and
+      //    back off on transient failures. Crucially we also wake immediately
+      //    when the tab regains focus, so a throttled background timer can't
+      //    strand a job that already finished upstream. A run of genuine
+      //    failures (or a terminal auth error) aborts instead of spinning for
+      //    the whole deadline.
       const deadline = Date.now() + 4 * 60 * 1000
+      const steadyDelay = 2000
+      const maxDelay = 8000
+      let delay = 800
+      let consecutiveErrors = 0
+      const maxConsecutiveErrors = 15
+
       while (Date.now() < deadline) {
-        await sleep(2500)
-        const poll = await fetch("/api/moth-blur", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "poll", jobId: sd.jobId, key }),
-        })
-        if (!poll.ok) continue
-        const pd = (await poll.json()) as { status?: string; output?: unknown }
+        await this._waitBeforePoll(delay)
+
+        let poll: Response
+        try {
+          poll = await this._post({ action: "poll", jobId: sd.jobId, key })
+        } catch {
+          if (++consecutiveErrors > maxConsecutiveErrors) return null
+          delay = Math.min(maxDelay, Math.max(steadyDelay, delay) * 2)
+          continue
+        }
+
+        // Terminal auth failure: stop immediately rather than looping blind.
+        if (poll.status === 401 || poll.status === 403) return null
+        if (!poll.ok) {
+          if (++consecutiveErrors > maxConsecutiveErrors) return null
+          delay = Math.min(maxDelay, Math.max(steadyDelay, delay) * 2)
+          continue
+        }
+
+        const pd = (await poll.json().catch(() => null)) as { status?: string; output?: unknown } | null
+        if (!pd?.status) {
+          if (++consecutiveErrors > maxConsecutiveErrors) return null
+          delay = Math.min(maxDelay, Math.max(steadyDelay, delay) * 2)
+          continue
+        }
+
+        consecutiveErrors = 0
         if (pd.status === "completed") return this._extractHeight(pd.output)
         if (pd.status === "failed" || pd.status === "error" || pd.status === "cancelled") return null
+        // still queued / running
+        delay = steadyDelay
       }
       return null
     } catch {
       return null
     }
+  }
+
+  // Single uncached POST to the job proxy. POST bodies are never cached by the
+  // browser, but we set no-store explicitly so job status can never be served
+  // stale.
+  private _post(body: unknown): Promise<Response> {
+    return fetch("/api/moth-blur", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      body: JSON.stringify(body),
+    })
+  }
+
+  // Resolve after `ms`, OR immediately when the tab becomes visible again.
+  // Background tabs have their timers throttled, so without this a poll can be
+  // delayed long after the job is done; waking on refocus makes the game notice
+  // completion the instant the player returns to the tab.
+  private _waitBeforePoll(ms: number): Promise<void> {
+    return new Promise<void>((resolve) => {
+      let settled = false
+      const finish = () => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVisible)
+        resolve()
+      }
+      const onVisible = () => {
+        if (typeof document !== "undefined" && document.visibilityState === "visible") finish()
+      }
+      const timer = setTimeout(finish, ms)
+      if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVisible)
+    })
   }
 
   // ── Array <-> height map conversion ─────────────────────────────────────────
