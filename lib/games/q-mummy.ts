@@ -42,6 +42,12 @@ const COL = {
   TREASURE_ICON: 8,
   KEY_ICON: 9,
   PATH: 10,
+  // title-screen tomb-block palette (Oh Mummy inspired)
+  T_SAND: 11,
+  T_GOLD: 12,
+  T_CYAN: 13,
+  T_TEAL: 14,
+  T_BROWN: 15,
 }
 
 const MOVE_INTERVAL = 6 // frames between player steps while a direction is held
@@ -258,6 +264,11 @@ export class QMummy implements Game {
   private prevStart = false
   private levelClearTimer = 0
 
+  // title screen (Oh Mummy inspired) - built once, shown in START, hidden on play
+  private titleItems: { obj: { x: number; y: number }; x: number; y: number }[] = []
+  private titlePrompt!: Text
+  private titleTick = 0
+
   private score = 0
   private lives = 3
   private level = 1
@@ -279,6 +290,11 @@ export class QMummy implements Game {
       "/sprites/q-mummy/treasure.png", // TREASURE_ICON
       "/sprites/q-mummy/key.png", // KEY_ICON
       color(0.22, 0.15, 0.08, 1), // PATH (walkable corridor floor)
+      color(0.82, 0.62, 0.28, 1), // T_SAND
+      color(1.0, 0.82, 0.35, 1), // T_GOLD
+      color(0.3, 0.85, 0.92, 1), // T_CYAN
+      color(0.18, 0.52, 0.55, 1), // T_TEAL
+      color(0.42, 0.26, 0.12, 1), // T_BROWN
     ])
 
     this.buildBlocks()
@@ -327,9 +343,8 @@ export class QMummy implements Game {
     )
 
     this.state = "START"
-    this.showOverlay(
-      "Q MUMMY\n\nMove: Arrows/WASD\nEncircle a block to open it\nFind the KEY, avoid mummies,\nthen reach the exit above!\n120 rooms, grown on IBM Quantum hardware\n\nPress START (Space)",
-    )
+    this.buildTitle()
+    this.showTitle()
   }
 
   process(_delta: number, engine: Coccoon): void {
@@ -352,8 +367,14 @@ export class QMummy implements Game {
         this.level++
         this.startLevel()
       }
-    } else if (startPressed) {
-      this.newGame()
+    } else {
+      // START / GAMEOVER: both wait for START; only START blinks its prompt
+      if (this.state === "START") {
+        this.titleTick++
+        const on = Math.floor(this.titleTick / 24) % 2 === 0
+        this.titlePrompt.set_font_color(color(0.4, 0.9, 0.95, on ? 1 : 0))
+      }
+      if (startPressed) this.newGame()
     }
   }
 
@@ -559,6 +580,7 @@ export class QMummy implements Game {
   // ---- state transitions --------------------------------------------------
 
   private newGame(): void {
+    this.hideTitle()
     this.score = 0
     this.lives = 3
     this.level = 1
@@ -862,5 +884,71 @@ export class QMummy implements Game {
   private hideOverlay(): void {
     this.overlayText.x = -40
     this.overlayText.y = -40
+  }
+
+  // ---- Oh Mummy inspired title screen ---------------------------------------
+  // Two bands of colored tomb "chambers" (top and bottom) frame a central
+  // title, with treasure / key / mummy / player icons peeking from the tombs
+  // and a blinking start prompt - a nod to GEM Software's 1984 screen, drawn
+  // with the same coccoon primitives the game uses.
+  private buildTitle(): void {
+    const e = this._engine
+    const off = -50
+    const remember = <T extends { x: number; y: number }>(obj: T, x: number, y: number): T => {
+      this.titleItems.push({ obj, x, y })
+      return obj
+    }
+
+    const TOP = 14
+    const BOT = 1
+    const chamberXs = [2, 8, 14, 20, 26]
+    const topCols = [COL.T_SAND, COL.T_TEAL, COL.T_GOLD, COL.T_CYAN, COL.T_BROWN]
+    const botCols = [COL.T_BROWN, COL.T_CYAN, COL.T_GOLD, COL.T_TEAL, COL.T_SAND]
+    const topIcons = [COL.TREASURE_ICON, COL.MUMMY, COL.KEY_ICON, COL.PLAYER, COL.GATE_LOCKED]
+    const botIcons = [COL.PLAYER, COL.KEY_ICON, COL.MUMMY, COL.TREASURE_ICON, COL.MUMMY]
+
+    for (let i = 0; i < chamberXs.length; i++) {
+      const cx = chamberXs[i]
+      // tomb blocks (3x3 colored squares), z=1 so icons sit on top
+      remember(new Sprite(e, topCols[i], off, off, 1, 3), cx, TOP)
+      remember(new Sprite(e, botCols[i], off, off, 1, 3), cx, BOT)
+      // icon peeking from each tomb
+      remember(new Sprite(e, topIcons[i], off, off, 9, 2), cx + 0.5, TOP + 0.5)
+      remember(new Sprite(e, botIcons[i], off, off, 9, 2), cx + 0.5, BOT + 0.5)
+    }
+
+    const gold = color(1, 0.82, 0.32, 1)
+    const sand = color(0.92, 0.78, 0.5, 1)
+    const clear = color(0, 0, 0, 0)
+
+    remember(new Text(e, "Q MUMMY", 20, 3, off, off, 46, gold, clear), 12, 9)
+    remember(new Text(e, "INSPIRED BY OH MUMMY - 1984", 24, 1, off, off, 13, sand, clear), 6, 8)
+    remember(
+      new Text(e, "Encircle a chamber to open it. Grab the KEY, dodge the mummies, reach the exit.", 26, 2, off, off, 12, sand, clear),
+      3,
+      6,
+    )
+    this.titlePrompt = remember(
+      new Text(e, "PRESS START (SPACE)", 20, 1, off, off, 18, color(0.4, 0.9, 0.95, 1), clear),
+      8,
+      4,
+    )
+  }
+
+  private showTitle(): void {
+    this.hideOverlay()
+    for (const it of this.titleItems) {
+      it.obj.x = it.x
+      it.obj.y = it.y
+    }
+    for (const icon of this.lifeIcons) icon.x = -10
+    this.hudText.text = ""
+  }
+
+  private hideTitle(): void {
+    for (const it of this.titleItems) {
+      it.obj.x = -50
+      it.obj.y = -50
+    }
   }
 }
